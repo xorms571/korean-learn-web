@@ -3,23 +3,27 @@
 import { useEffect, useState } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { useRouter } from 'next/navigation';
+import Loading from '@/components/Loading';
 
 export default function CommunityPage() {
-  const { user } = useAuth();
+  const { user, loading } = useAuth();
   const [activeTab, setActiveTab] = useState('all');
   const [searchQuery, setSearchQuery] = useState('');
   const router = useRouter();
 
   useEffect(() => {
+    if (loading) return;
     if (!user) {
-      router.push('/login');
+      router.replace('/login');
       return
     }
-  }, [user, router])
+  }, [user, loading, router])
 
   // Empty state - no posts yet
   const posts = [];
   const categories = ['all', 'general', 'grammar', 'vocabulary', 'pronunciation', 'culture'];
+
+  if (!user) return <Loading />;
 
   return (
     <div className="min-h-screen bg-gray-50 py-8">

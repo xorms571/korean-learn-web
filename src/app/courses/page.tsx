@@ -22,35 +22,39 @@ interface Course {
 }
 
 export default function CoursesPage() {
-  const { user } = useAuth();
+  const { user, loading } = useAuth();
   const [courses, setCourses] = useState<Course[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [courseLoading, setCourseLoading] = useState(true);
   const [selectedLevel, setSelectedLevel] = useState('all');
   const [selectedCategory, setSelectedCategory] = useState('all');
   const router = useRouter();
 
   useEffect(() => {
+    if (loading) return;
+
     if (!user) {
-      router.push('/login');
-      return
-    } else {
-      const fetchCourses = async () => {
-        try {
-          const querySnapshot = await getDocs(collection(db, 'courses'));
-          const courseData: Course[] = querySnapshot.docs.map(doc => ({
-            id: doc.id,
-            ...doc.data(),
-          })) as Course[];
-          setCourses(courseData);
-        } catch (error) {
-          console.error("Error fetching courses:", error);
-        } finally {
-          setLoading(false);
-        }
-      };
-      fetchCourses();
+      router.replace('/login');
+      return;
     }
-  }, [user]);
+
+    const fetchCourses = async () => {
+      try {
+        const querySnapshot = await getDocs(collection(db, 'courses'));
+        const courseData: Course[] = querySnapshot.docs.map((doc) => ({
+          id: doc.id,
+          ...doc.data(),
+        })) as Course[];
+        setCourses(courseData);
+      } catch (error) {
+        console.error("Error fetching courses:", error);
+      } finally {
+        setCourseLoading(false);
+      }
+    };
+
+    fetchCourses();
+  }, [user, loading, router]);
+
 
   const levels = [
     { value: 'all', label: 'All Levels' },
@@ -93,6 +97,10 @@ export default function CoursesPage() {
   };
 
   if (loading) return <Loading />;
+
+  if (!user) return <Loading />;
+
+  if (courseLoading) return <Loading />;
 
   return (
     <div className="min-h-screen bg-gray-50 py-8">

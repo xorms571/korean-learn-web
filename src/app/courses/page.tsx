@@ -1,81 +1,57 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import Link from 'next/link';
+import { collection, getDocs } from 'firebase/firestore';
+import { db } from '@/lib/firebase';
+import Loading from '@/components/Loading';
+import Image from 'next/image';
+import { useAuth } from '@/hooks/useAuth';
+import { useRouter } from 'next/navigation';
+
+interface Course {
+  id: string;
+  title: string;
+  description: string;
+  level: string;
+  category: string;
+  duration: string;
+  lessons: number;
+  image: string;
+  progress: number;
+}
 
 export default function CoursesPage() {
+  const { user } = useAuth();
+  const [courses, setCourses] = useState<Course[]>([]);
+  const [loading, setLoading] = useState(true);
   const [selectedLevel, setSelectedLevel] = useState('all');
   const [selectedCategory, setSelectedCategory] = useState('all');
+  const router = useRouter();
 
-  // Temporary course data (will be fetched from API in real implementation)
-  const courses = [
-    {
-      id: 1,
-      title: 'Basic Greetings',
-      description: 'Learn basic greetings like 안녕하세요, 감사합니다, etc.',
-      level: 'beginner',
-      category: 'conversation',
-      duration: '2 hours',
-      lessons: 8,
-      image: '/api/placeholder/300/200',
-      progress: 0
-    },
-    {
-      id: 2,
-      title: 'Self Introduction',
-      description: 'Learn how to introduce yourself including name, age, and job.',
-      level: 'beginner',
-      category: 'conversation',
-      duration: '3 hours',
-      lessons: 12,
-      image: '/api/placeholder/300/200',
-      progress: 0
-    },
-    {
-      id: 3,
-      title: 'Daily Conversation',
-      description: 'Learn how to have conversations about family, hobbies, food, etc.',
-      level: 'beginner',
-      category: 'conversation',
-      duration: '4 hours',
-      lessons: 15,
-      image: '/api/placeholder/300/200',
-      progress: 0
-    },
-    {
-      id: 4,
-      title: 'Basic Grammar',
-      description: 'Learn basic Korean grammar structure and sentence building.',
-      level: 'beginner',
-      category: 'grammar',
-      duration: '5 hours',
-      lessons: 20,
-      image: '/api/placeholder/300/200',
-      progress: 0
-    },
-    {
-      id: 5,
-      title: 'Ordering Food',
-      description: 'Learn how to order food and have conversations at restaurants.',
-      level: 'intermediate',
-      category: 'conversation',
-      duration: '3 hours',
-      lessons: 10,
-      image: '/api/placeholder/300/200',
-      progress: 0
-    },
-    {
-      id: 6,
-      title: 'Travel Korean',
-      description: 'Learn Korean expressions and conversations needed for travel.',
-      level: 'intermediate',
-      category: 'travel',
-      duration: '4 hours',
-      lessons: 18,
-      image: '/api/placeholder/300/200',
-      progress: 0
+  useEffect(() => {
+    if (user === null) return;
+    if (!user) {
+      router.push('/login');
+      return
+    } else {
+      const fetchCourses = async () => {
+        try {
+          const querySnapshot = await getDocs(collection(db, 'courses'));
+          const courseData: Course[] = querySnapshot.docs.map(doc => ({
+            id: doc.id,
+            ...doc.data(),
+          })) as Course[];
+          setCourses(courseData);
+        } catch (error) {
+          console.error("Error fetching courses:", error);
+        } finally {
+          setLoading(false);
+        }
+      };
+      fetchCourses();
     }
-  ];
+  }, [user]);
 
   const levels = [
     { value: 'all', label: 'All Levels' },
@@ -116,6 +92,8 @@ export default function CoursesPage() {
       default: return category;
     }
   };
+
+  if (loading) return <Loading />;
 
   return (
     <div className="min-h-screen bg-gray-50 py-8">
@@ -172,12 +150,13 @@ export default function CoursesPage() {
             <div key={course.id} className="bg-white rounded-lg shadow overflow-hidden hover:shadow-lg transition-shadow">
               {/* Course Image */}
               <div className="h-48 bg-gray-200 flex items-center justify-center">
-                <div className="text-gray-500 text-center">
-                  <svg className="w-16 h-16 mx-auto mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.246 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
-                  </svg>
-                  <p className="text-sm">Course Image</p>
-                </div>
+                {course.image ? <Image width={384} height={192} src={course.image} alt={course.title} className='w-full h-full object-cover' /> :
+                  <div className="text-gray-500 text-center">
+                    <svg className="w-16 h-16 mx-auto mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.246 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+                    </svg>
+                    <p className="text-sm">Course Image</p>
+                  </div>}
               </div>
 
               {/* Course Content */}
@@ -206,8 +185,8 @@ export default function CoursesPage() {
                       <span>{course.progress}%</span>
                     </div>
                     <div className="w-full bg-gray-200 rounded-full h-2">
-                      <div 
-                        className="bg-blue-600 h-2 rounded-full" 
+                      <div
+                        className="bg-blue-600 h-2 rounded-full"
                         style={{ width: `${course.progress}%` }}
                       ></div>
                     </div>

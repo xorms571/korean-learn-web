@@ -11,12 +11,11 @@ export default function CommunityPage() {
   const router = useRouter();
 
   useEffect(() => {
-    if (user === null) return;
     if (!user) {
       router.push('/login');
       return
     }
-  }, [user])
+  }, [user, router])
 
   // Empty state - no posts yet
   const posts = [];

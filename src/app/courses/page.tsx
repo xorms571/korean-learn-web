@@ -30,7 +30,6 @@ export default function CoursesPage() {
   const router = useRouter();
 
   useEffect(() => {
-    if (user === null) return;
     if (!user) {
       router.push('/login');
       return

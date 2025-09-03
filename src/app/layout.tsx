@@ -4,8 +4,8 @@ import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 
 export const metadata: Metadata = {
-  title: "한국어 학습 - Korean Learning Platform",
-  description: "영어 사용자들을 위한 체계적이고 효과적인 한국어 학습 플랫폼",
+  title: "Korean Learning - Korean Learning Platform",
+  description: "A systematic and effective Korean learning platform for English speakers",
 };
 
 export default function RootLayout({
@@ -14,7 +14,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="ko">
+    <html lang="en">
       <body className="min-h-screen flex flex-col">
         <Header />
         <main className="flex-grow">

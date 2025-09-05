@@ -5,8 +5,9 @@ import { doc, getDoc, collection, getDocs, query, orderBy } from 'firebase/fires
 import { db } from '@/lib/firebase';
 import { useRouter } from 'next/navigation';
 import Loading from '@/components/Loading';
-import Image from 'next/image';
 import Comment from '@/components/Comment';
+import { FiVolume2, FiChevronLeft, FiChevronRight, FiCheckCircle } from 'react-icons/fi';
+
 
 interface Example {
     korean: string;
@@ -45,10 +46,8 @@ export default function CourseDetailPage({ params }: { params: Promise<{ id: str
     const [currentLessonIndex, setCurrentLessonIndex] = useState(0);
     const [exampleImageUrls, setExampleImageUrls] = useState<Record<string, string>>({});
 
-    // Derived state for currentLesson
     const currentLesson = course?.lessons[currentLessonIndex];
 
-    // Effect to fetch course and lessons
     useEffect(() => {
         const fetchCourse = async () => {
             try {
@@ -83,9 +82,6 @@ export default function CourseDetailPage({ params }: { params: Promise<{ id: str
         fetchCourse();
     }, [id, router]);
 
-    const [courseImageUnsplashUrl, setCourseImageUnsplashUrl] = useState<string | null>(null);
-    const [lessonImageUnsplashUrl, setLessonImageUnsplashUrl] = useState<string | null>(null);
-
     // Effect to fetch images for example sentences
     useEffect(() => {
         if (currentLesson?.exampleSentences) {
@@ -111,67 +107,12 @@ export default function CourseDetailPage({ params }: { params: Promise<{ id: str
             };
             fetchImages();
         }
-    }, [currentLesson]); // Re-fetch images when currentLesson changes
+    }, [currentLesson]);
 
-    // Effect to fetch course image
-    useEffect(() => {
-        if (course?.title) {
-            const fetchCourseImage = async () => {
-                try {
-                    const response = await fetch(`/api/unsplash?query=${encodeURIComponent(course.title)}`);
-                    if (response.ok) {
-                        const data = await response.json();
-                        if (data.imageUrl) {
-                            setCourseImageUnsplashUrl(data.imageUrl);
-                        } else {
-                            // No image found, set to null to indicate no Unsplash image
-                            setCourseImageUnsplashUrl(null);
-                        }
-                    } else {
-                        console.error(`Failed to fetch course image for "${course.title}":`, response.statusText);
-                        setCourseImageUnsplashUrl(null); // Set to null on error
-                    }
-                } catch (error) {
-                    console.error(`Error fetching course image for "${course.title}":`, error);
-                    setCourseImageUnsplashUrl(null); // Set to null on error
-                }
-            };
-            fetchCourseImage();
-        }
-    }, [course?.title]); // Re-fetch when course title changes
-
-    // Effect to fetch current lesson image
-    useEffect(() => {
-        if (currentLesson?.title) {
-            const fetchLessonImage = async () => {
-                try {
-                    const response = await fetch(`/api/unsplash?query=${encodeURIComponent(currentLesson.title)}`);
-                    if (response.ok) {
-                        const data = await response.json();
-                        if (data.imageUrl) {
-                            setLessonImageUnsplashUrl(data.imageUrl);
-                        } else {
-                            // No image found, set to null to indicate no Unsplash image
-                            setLessonImageUnsplashUrl(null);
-                        }
-                    } else {
-                        console.error(`Failed to fetch lesson image for "${currentLesson.title}":`, response.statusText);
-                        setLessonImageUnsplashUrl(null); // Set to null on error
-                    }
-                } catch (error) {
-                    console.error(`Error fetching lesson image for "${currentLesson.title}":`, error);
-                    setLessonImageUnsplashUrl(null); // Set to null on error
-                }
-            };
-            fetchLessonImage();
-        }
-    }, [currentLesson?.title]); // Re-fetch when current lesson title changes
-
-    // Function to speak text using Web Speech API
     const speakText = (text: string) => {
         if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
             const utterance = new SpeechSynthesisUtterance(text);
-            utterance.lang = 'ko-KR'; // Set language to Korean
+            utterance.lang = 'ko-KR';
             speechSynthesis.speak(utterance);
         } else {
             alert('Your browser does not support Web Speech API.');
@@ -179,121 +120,155 @@ export default function CourseDetailPage({ params }: { params: Promise<{ id: str
     };
 
     if (loading) return <Loading />;
-    if (!course) return <p className="p-8">Course not found</p>;
-    // If currentLesson is undefined here, it means course was fetched but lessons might be empty or index is out of bounds
-    if (!currentLesson) return <p className="p-8">Lesson not found</p>;
-
-
-    return (
-        <div className="min-h-screen bg-white">
-            <div className="max-w-7xl h-full mx-auto p-8 text-gray-700">
-                <div className='flex flex-row-reverse justify-end items-center gap-5 mb-8'>
-                    <div>
-                        {/* Course Header */}
-                        <h1 className="text-3xl font-bold mb-2">{course.title}</h1>
-                        {/* Course Description */}
-                        <p className="text-gray-400 mb-4">{course.description}</p>
-                        <div className="mb-8 flex gap-2">
-                            <span className="inline-block bg-blue-100 text-blue-800 px-2 py-1 rounded-full text-sm">{course.level}</span>
-                            <span className="inline-block bg-green-100 text-green-800 px-2 py-1 rounded-full text-sm">{course.category}</span>
-                        </div>
-                    </div>
-
-                    {/* Course Image */}
-                    {courseImageUnsplashUrl && <img src={courseImageUnsplashUrl} alt={course.title} className="h-36 object-cover rounded-lg" />}
-
-                </div>
-                {lessonImageUnsplashUrl && (
-                    <div className='relative w-full h-[400px] rounded-lg mb-12 overflow-hidden bg-slate-400'>
-                        <img src={lessonImageUnsplashUrl} alt={currentLesson.title} className="absolute w-full h-full object-cover opacity-60" />
-                        <b className='absolute top-4 left-4 text-white text-4xl' style={{ textShadow: '2px 2px 2px rgba(0,0,0,.5)' }}>Lesson {currentLesson.lessonNumber}:</b>
-                        <div className='absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-white text-center' >
-                            <h2 className='font-black text-7xl underline' style={{ textShadow: '3px 3px 2px rgba(0,0,0,.5)' }}>{currentLesson.title}</h2>
-                            <span className='text-lg font-semibold' style={{ textShadow: '2px 2px 2px rgba(0,0,0,.5)' }}>{currentLesson.content}</span>
-                        </div>
-                    </div>
-                )}
-
-                {currentLesson.exampleSentences && (
-                    <div className="mb-8">
-                        <ul className="list-disc list-inside">
-                            {Object.entries(currentLesson.exampleSentences).map(([key, ex], idx) => (
-                                <li className='flex mb-8 hover:shadow-lg rounded-lg overflow-hidden bg-slate-100' key={key}> {/* Use key from Object.entries */}
-                                    {exampleImageUrls[key] && ( // Display image if available
-                                        <div className='relative inline-block w-2/6 h-52 text-2xl text-white overflow-hidden'>
-                                            <img
-                                                src={exampleImageUrls[key]}
-                                                alt={ex.korean}
-                                                className="absolute w-full h-full object-cover"
-                                            />
-                                            <span className='absolute top-2 left-2 rounded-lg p-2' style={{ background: 'rgba(0,0,0,.3)' }}>{ex.korean}</span>
-                                            <span className='absolute bottom-2 right-2 rounded-lg p-2' style={{ background: 'rgba(0,0,0,.3)' }}>{ex.english}</span>
-                                        </div>
-                                    )}
-                                    <div className='w-4/6 p-4'>
-                                        <span className="font-medium">{ex.korean}</span> — <span>{ex.english}</span>
-                                        <p className='my-2'>{ex.pronunciation}</p>
-                                        {typeof window !== 'undefined' && 'speechSynthesis' in window && (
-                                            <button
-                                                onClick={() => speakText(ex.korean)}
-                                                className="w-10 h-10 p-1 rounded-full bg-blue-100 text-blue-800 hover:bg-blue-200 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                                aria-label="Play pronunciation"
-                                            >
-                                                {/* Simple speaker icon, you might want to use an actual SVG icon */}
-                                                🔊
-                                            </button>
-                                        )}
-                                    </div>
-                                </li>
-                            ))}
-                        </ul>
-                    </div>
-                )}
-                <div className="mb-4">
-                    <h3 className="font-semibold inline-block mr-2">tip:</h3>
-                    <span>{currentLesson.tip}</span>
-                </div>
-
-                {/* Current Lesson Content */}
-                <div className="p-6 mb-4 border rounded-lg bg-gray-50">
-                    <h2 className="text-xl font-semibold mb-2">
-                        Lesson {currentLesson.lessonNumber}: {currentLesson.title}
-                    </h2>
-                    <p>{currentLesson.content}</p>
-                </div>
-
-                {/* Progress Bar */}
-                <div className="w-full bg-gray-200 h-2 rounded mb-6">
-                    <div
-                        className="bg-blue-600 h-2 rounded"
-                        style={{ width: `${((currentLessonIndex + 1) / course.lessonsCount) * 100}%` }}
-                    ></div>
-                </div>
-
-                {/* Navigation Buttons */}
-                <div className="flex justify-between">
-                    <button
-                        disabled={currentLessonIndex === 0}
-                        onClick={() => setCurrentLessonIndex(prev => prev - 1)}
-                        className="px-4 py-2 bg-gray-200 rounded disabled:opacity-50"
-                    >
-                        Previous
-                    </button>
-
-                    <span className="text-gray-700 font-medium">
-                        {currentLessonIndex + 1} / {course.lessonsCount}
-                    </span>
-
-                    <button
-                        disabled={currentLessonIndex === course.lessonsCount - 1}
-                        onClick={() => setCurrentLessonIndex(prev => prev + 1)}
-                        className="px-4 py-2 bg-blue-600 text-white rounded disabled:opacity-50"
-                    >
-                        Next
-                    </button>
+    if (!course || !currentLesson) {
+        return (
+            <div className="flex items-center justify-center h-screen bg-gray-100">
+                <div className="text-center">
+                    <h2 className="text-2xl font-semibold text-gray-700">Course or Lesson Not Found</h2>
+                    <p className="text-gray-500 mt-2">The content you are looking for does not exist.</p>
                 </div>
             </div>
-            <Comment courseId={course.id} lessonId={currentLesson.lessonNumber.toString()} />
+        );
+    }
+
+    const progressPercentage = ((currentLessonIndex + 1) / course.lessonsCount) * 100;
+
+    return (
+        <div className="bg-gray-50 min-h-screen">
+            <div className="container mx-auto px-4 py-8">
+                {/* Header */}
+                <header className="mb-8">
+                    <h1 className="text-4xl font-bold text-gray-800 mb-2">{course.title}</h1>
+                    <p className="text-lg text-gray-600 mb-4">{course.description}</p>
+                    <div className="flex items-center gap-4">
+                        <span className="inline-block bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm font-semibold">{course.level}</span>
+                        <span className="inline-block bg-green-100 text-green-800 px-3 py-1 rounded-full text-sm font-semibold">{course.category}</span>
+                    </div>
+                </header>
+
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                    {/* Main Content */}
+                    <main className="lg:col-span-2">
+                        <div className="bg-white rounded-lg shadow-md p-6">
+                            {/* Lesson Header */}
+                            <div className="mb-6">
+                                <h2 className="text-3xl font-bold text-gray-800">
+                                    Lesson {currentLesson.lessonNumber}: {currentLesson.title}
+                                </h2>
+                                <p className="text-gray-600 mt-1">{currentLesson.content}</p>
+                            </div>
+
+                            {/* Example Sentences */}
+                            {currentLesson.exampleSentences && (
+                                <div className="space-y-6">
+                                    <h3 className="text-2xl font-semibold text-gray-700 border-b pb-2">Example Sentences</h3>
+                                    {Object.entries(currentLesson.exampleSentences).map(([key, ex]) => (
+                                        <div key={key} className="bg-gray-50 rounded-lg p-4 flex items-start gap-4 transition-shadow hover:shadow-lg">
+                                            {exampleImageUrls[key] && (
+                                                <img src={exampleImageUrls[key]} alt={ex.korean} className="w-32 h-32 object-cover rounded-md" />
+                                            )}
+                                            <div className="flex-1">
+                                                <div className="flex items-center justify-between">
+                                                    <p className="text-lg font-semibold text-gray-800">{ex.korean}</p>
+                                                    <button
+                                                        onClick={() => speakText(ex.korean)}
+                                                        className="p-2 rounded-full text-gray-600 hover:bg-gray-200 transition-colors"
+                                                        aria-label="Play pronunciation"
+                                                    >
+                                                        <FiVolume2 size={20} />
+                                                    </button>
+                                                </div>
+                                                <p className="text-md text-gray-600">{ex.english}</p>
+                                                <p className="text-sm text-gray-500 mt-1 italic">{ex.pronunciation}</p>
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            )}
+
+                            {/* Tip Section */}
+                            {currentLesson.tip && (
+                                <div className="mt-8 p-4 bg-blue-50 border-l-4 border-blue-400 rounded-r-lg">
+                                <h4 className="font-bold text-blue-800">💡 Tip</h4>
+                                <p className="text-blue-700 mt-1">{currentLesson.tip}</p>
+                                </div>
+                            )}
+                        </div>
+
+                        {/* Navigation */}
+                        <div className="mt-8 flex justify-between items-center">
+                            <button
+                                disabled={currentLessonIndex === 0}
+                                onClick={() => setCurrentLessonIndex(prev => prev - 1)}
+                                className="flex items-center gap-2 px-4 py-2 bg-white rounded-lg shadow-md disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-100 transition-colors"
+                            >
+                                <FiChevronLeft />
+                                Previous
+                            </button>
+                            <span className="text-gray-700 font-medium">
+                                {currentLessonIndex + 1} / {course.lessonsCount}
+                            </span>
+                            <button
+                                disabled={currentLessonIndex === course.lessonsCount - 1}
+                                onClick={() => setCurrentLessonIndex(prev => prev + 1)}
+                                className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg shadow-md disabled:opacity-50 disabled:cursor-not-allowed hover:bg-blue-700 transition-colors"
+                            >
+                                Next
+                                <FiChevronRight />
+                            </button>
+                        </div>
+                    </main>
+
+                    {/* Sidebar with Lesson List */}
+                    <aside className="lg:col-span-1">
+                        <div className="sticky top-8">
+                            <div className="bg-white rounded-lg shadow-md p-6">
+                                <h3 className="text-xl font-bold text-gray-800 mb-4">Course Lessons</h3>
+                                {/* Progress Bar */}
+                                <div className="mb-4">
+                                    <div className="flex justify-between mb-1">
+                                        <span className="text-sm font-medium text-gray-700">Progress</span>
+                                        <span className="text-sm font-medium text-gray-700">{Math.round(progressPercentage)}%</span>
+                                    </div>
+                                    <div className="w-full bg-gray-200 rounded-full h-2.5">
+                                        <div className="bg-blue-600 h-2.5 rounded-full" style={{ width: `${progressPercentage}%` }}></div>
+                                    </div>
+                                </div>
+
+                                <ul className="space-y-2">
+                                    {course.lessons.map((lesson, index) => (
+                                        <li key={lesson.lessonNumber}>
+                                            <button
+                                                onClick={() => setCurrentLessonIndex(index)}
+                                                className={`w-full text-left p-3 rounded-lg transition-colors flex items-center gap-3 ${currentLessonIndex === index
+                                                        ? 'bg-blue-100 text-blue-800 font-semibold'
+                                                        : 'hover:bg-gray-100 text-gray-700'
+                                                    }`}
+                                            >
+                                                <div className="flex-shrink-0">
+                                                    {currentLessonIndex > index ? (
+                                                        <FiCheckCircle className="text-green-500" />
+                                                    ) : (
+                                                        <span className={`w-5 h-5 flex items-center justify-center rounded-full text-xs ${currentLessonIndex === index ? 'bg-blue-500 text-white' : 'bg-gray-300'}`}>
+                                                            {index + 1}
+                                                        </span>
+                                                    )}
+                                                </div>
+                                                <span>{lesson.title}</span>
+                                            </button>
+                                        </li>
+                                    ))}
+                                </ul>
+                            </div>
+                        </div>
+                    </aside>
+                </div>
+
+                {/* Comments Section */}
+                <div className="mt-12">
+                    <Comment courseId={course.id} lessonId={currentLesson.lessonNumber.toString()} />
+                </div>
+            </div>
         </div>
     );
 }

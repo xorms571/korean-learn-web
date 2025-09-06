@@ -3,43 +3,112 @@
 import Link from 'next/link';
 import { useAuth } from '@/hooks/useAuth';
 import { useRouter } from 'next/navigation';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import Loading from '@/components/Loading';
+import { collection, getDocs, doc, getDoc, orderBy, query } from 'firebase/firestore';
+import { db } from '@/lib/firebase';
+import { FiAward } from 'react-icons/fi';
+
+// --- Helper Functions ---
+const formatStudyTime = (totalSeconds: number): string => {
+    if (!totalSeconds) return '0m';
+    const hours = Math.floor(totalSeconds / 3600);
+    const minutes = Math.floor((totalSeconds % 3600) / 60);
+    if (hours > 0) {
+        return `${hours}h ${minutes}m`;
+    }
+    return `${minutes}m`;
+};
+
+// --- Interfaces ---
+interface EnrolledCourse {
+    id: string;
+    title: string;
+    description: string;
+    progress: number;
+    isCompleted?: boolean;
+}
+
+interface ProgressOverview {
+    totalCompletedLessons: number;
+    totalEnrolledLessons: number;
+}
 
 export default function DashboardPage() {
-  const { user, userProfile, loading } = useAuth();
+  const { user, userProfile, loading: authLoading } = useAuth();
   const router = useRouter();
+  const [enrolledCourses, setEnrolledCourses] = useState<EnrolledCourse[]>([]);
+  const [progressOverview, setProgressOverview] = useState<ProgressOverview>({ totalCompletedLessons: 0, totalEnrolledLessons: 0 });
+  const [dataLoading, setDataLoading] = useState(true);
 
   useEffect(() => {
-    if (!loading && !user) {
+    if (authLoading) return;
+    if (!user) {
       router.push('/login');
+      return;
     }
-  }, [user, loading, router]);
+
+    const fetchDashboardData = async () => {
+        try {
+            const progressQuery = query(
+                collection(db, 'user_progress', user.uid, 'enrolled_courses'),
+                orderBy('lastAccessed', 'desc')
+            );
+            const progressSnapshot = await getDocs(progressQuery);
+
+            let totalCompleted = 0;
+            let totalEnrolled = 0;
+
+            const coursesData = await Promise.all(progressSnapshot.docs.map(async (progressDoc) => {
+                const courseId = progressDoc.id;
+                const progressData = progressDoc.data();
+
+                const courseDoc = await getDoc(doc(db, 'courses', courseId));
+                if (courseDoc.exists()) {
+                    const courseData = courseDoc.data();
+                    totalCompleted += progressData.completedLessons?.length || 0;
+                    totalEnrolled += courseData.lessonsCount || 0;
+
+                    return {
+                        id: courseId,
+                        title: courseData.title,
+                        description: courseData.description,
+                        progress: progressData.progress || 0,
+                        isCompleted: progressData.isCompleted || false,
+                    };
+                }
+                return null;
+            }));
+
+            setEnrolledCourses(coursesData.filter(c => c !== null) as EnrolledCourse[]);
+            setProgressOverview({ totalCompletedLessons: totalCompleted, totalEnrolledLessons: totalEnrolled });
+
+        } catch (error) {
+            console.error("Error fetching dashboard data:", error);
+        } finally {
+            setDataLoading(false);
+        }
+    };
+
+    fetchDashboardData();
+  }, [user, authLoading, router]);
+
+  const loading = authLoading || dataLoading;
 
   if (loading) {
     return <Loading/>;
   }
 
-  if (!user) {
-    return null;
+  if (!user || !userProfile) {
+    return null; // Should be redirected by the effect
   }
-
-  // Use actual user data if available, otherwise show empty state
-  const currentUserProfile = userProfile || {
-    displayName: 'Learner',
-    currentLevel: 'Beginner 1',
-    totalLessons: 0,
-    completedLessons: 0,
-    streak: 0,
-    totalStudyTime: '0h 0m'
-  };
 
   return (
     <div className="min-h-screen bg-gray-50 py-8">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Welcome Section */}
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900">Hello, {currentUserProfile.displayName}!</h1>
+          <h1 className="text-3xl font-bold text-gray-900">Hello, {userProfile.displayName}!</h1>
           <p className="text-gray-600 mt-2">Welcome to your Korean learning journey.</p>
         </div>
 
@@ -54,7 +123,7 @@ export default function DashboardPage() {
               </div>
               <div className="ml-4">
                 <p className="text-sm font-medium text-gray-600">Current Level</p>
-                <p className="text-2xl font-semibold text-gray-900">{currentUserProfile.currentLevel}</p>
+                <p className="text-2xl font-semibold text-gray-900">{userProfile.currentLevel}</p>
               </div>
             </div>
           </div>
@@ -68,7 +137,7 @@ export default function DashboardPage() {
               </div>
               <div className="ml-4">
                 <p className="text-sm font-medium text-gray-600">Completed Lessons</p>
-                <p className="text-2xl font-semibold text-gray-900">{currentUserProfile.completedLessons}/{currentUserProfile.totalLessons}</p>
+                <p className="text-2xl font-semibold text-gray-900">{progressOverview.totalCompletedLessons}/{progressOverview.totalEnrolledLessons}</p>
               </div>
             </div>
           </div>
@@ -82,7 +151,7 @@ export default function DashboardPage() {
               </div>
               <div className="ml-4">
                 <p className="text-sm font-medium text-gray-600">Study Streak</p>
-                <p className="text-2xl font-semibold text-gray-900">{currentUserProfile.streak} days</p>
+                <p className="text-2xl font-semibold text-gray-900">{userProfile.streak || 0} days</p>
               </div>
             </div>
           </div>
@@ -96,7 +165,7 @@ export default function DashboardPage() {
               </div>
               <div className="ml-4">
                 <p className="text-sm font-medium text-gray-600">Total Study Time</p>
-                <p className="text-2xl font-semibold text-gray-900">{currentUserProfile.totalStudyTime}</p>
+                <p className="text-2xl font-semibold text-gray-900">{formatStudyTime(userProfile.totalStudySeconds)}</p>
               </div>
             </div>
           </div>
@@ -109,7 +178,7 @@ export default function DashboardPage() {
               <h2 className="text-lg font-semibold text-gray-900">Recent Courses</h2>
             </div>
             <div className="p-6">
-              {currentUserProfile.completedLessons === 0 ? (
+              {enrolledCourses.length === 0 ? (
                 <div className="text-center py-8">
                   <div className="text-gray-400 mb-4">
                     <svg className="w-16 h-16 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -126,9 +195,30 @@ export default function DashboardPage() {
                   </Link>
                 </div>
               ) : (
-                <div className="text-center py-8">
-                  <p className="text-gray-500">Your course progress will appear here as you start learning.</p>
-                </div>
+                <ul className="space-y-4">
+                    {enrolledCourses.map(course => (
+                        <li key={course.id} className="p-4 rounded-lg border border-gray-200 hover:shadow-md transition-shadow">
+                            <div className="flex justify-between items-center mb-2">
+                                <h3 className="font-semibold text-gray-800">{course.title}</h3>
+                                {course.isCompleted && (
+                                    <span className="flex items-center gap-1 text-xs bg-yellow-400 text-white font-bold px-2 py-1 rounded-md">
+                                        <FiAward/> Completed
+                                    </span>
+                                )}
+                            </div>
+                            <div className="flex justify-between text-sm text-gray-600 mb-2">
+                                <span>Progress</span>
+                                <span>{course.progress}%</span>
+                            </div>
+                            <div className="w-full bg-gray-200 rounded-full h-2 mb-4">
+                                <div className={`${course.isCompleted ? 'bg-yellow-400' : 'bg-blue-600'} h-2 rounded-full`} style={{ width: `${course.progress}%` }}></div>
+                            </div>
+                            <Link href={`/courses/${course.id}`} className="text-blue-600 hover:underline text-sm font-medium">
+                                {course.isCompleted ? 'Review Course' : 'Continue Learning'}
+                            </Link>
+                        </li>
+                    ))}
+                </ul>
               )}
             </div>
           </div>

@@ -18,8 +18,9 @@ export interface UserProfile {
   photoURL?: string;
   joinDate: string;
   currentLevel: string;
-  totalStudyTime: string;
+  totalStudySeconds: number; // Changed from string to number
   streak: number;
+  lastActivityDate: string; // Added to track streak
   completedLessons: number;
   totalLessons: number;
 }
@@ -57,11 +58,9 @@ export function useAuth() {
       const provider = new GoogleAuthProvider();
       const result = await signInWithPopup(auth, provider);
 
-      // Check if user exists in Firestore
       const userDoc = await getDoc(doc(db, 'users', result.user.uid));
 
       if (!userDoc.exists()) {
-        // Create new user profile
         const newUserProfile: UserProfile = {
           uid: result.user.uid,
           email: result.user.email || '',
@@ -73,8 +72,9 @@ export function useAuth() {
             day: 'numeric'
           }),
           currentLevel: 'Beginner 1',
-          totalStudyTime: '0h 0m',
+          totalStudySeconds: 0,
           streak: 0,
+          lastActivityDate: '',
           completedLessons: 0,
           totalLessons: 0
         };
@@ -98,7 +98,6 @@ export function useAuth() {
       const currentUser = auth.currentUser;
       if (!currentUser) throw new Error("User not authenticated yet");
 
-      // Create user profile
       const newUserProfile: UserProfile = {
         uid: result.user.uid,
         email: result.user.email || '',
@@ -110,8 +109,9 @@ export function useAuth() {
           day: 'numeric'
         }),
         currentLevel: 'Beginner 1',
-        totalStudyTime: '0h 0m',
+        totalStudySeconds: 0,
         streak: 0,
+        lastActivityDate: '',
         completedLessons: 0,
         totalLessons: 0
       };
@@ -130,7 +130,6 @@ export function useAuth() {
     try {
       const result = await signInWithEmailAndPassword(auth, email, password);
 
-      // Get user profile
       const userDoc = await getDoc(doc(db, 'users', result.user.uid));
       if (userDoc.exists()) {
         setUserProfile(userDoc.data() as UserProfile);
@@ -164,4 +163,3 @@ export function useAuth() {
     logout
   };
 }
-

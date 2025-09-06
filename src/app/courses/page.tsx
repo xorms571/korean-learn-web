@@ -1,12 +1,12 @@
 'use client';
 
-import { useEffect, useState } from 'react';
-import Link from 'next/link';
-import { collection, getDocs } from 'firebase/firestore';
-import { db } from '@/lib/firebase';
-import Loading from '@/components/Loading';
-import { useAuth } from '@/hooks/useAuth';
+import { useEffect, useState, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
+import { collection, getDocs, doc, setDoc, serverTimestamp, getDoc } from 'firebase/firestore';
+import { db } from '@/lib/firebase';
+import { useAuth } from '@/hooks/useAuth';
+import Loading from '@/components/Loading';
+import { FiAward } from 'react-icons/fi';
 
 interface Course {
   id: string;
@@ -18,77 +18,125 @@ interface Course {
   lessons: number;
   image: string;
   progress: number;
+  isCompleted?: boolean;
+}
+
+interface UserProgress {
+    progress: number;
+    isCompleted?: boolean;
+    completedLessons?: number[];
+    lastCompletedLesson?: number | null;
 }
 
 export default function CoursesPage() {
-  const { user, loading } = useAuth();
+  const { user, loading: authLoading } = useAuth();
   const [courses, setCourses] = useState<Course[]>([]);
+  const [userProgress, setUserProgress] = useState<Record<string, UserProgress>>({});
   const [courseLoading, setCourseLoading] = useState(true);
   const [selectedLevel, setSelectedLevel] = useState('all');
   const [selectedCategory, setSelectedCategory] = useState('all');
-  const [courseImageUrls, setCourseImageUrls] = useState<Record<string, string>>({});  
+  const [courseImageUrls, setCourseImageUrls] = useState<Record<string, string>>({});
   const router = useRouter();
 
   useEffect(() => {
-    if (loading) return;
+    if (authLoading) return;
 
     if (!user) {
       router.replace('/login');
       return;
     }
 
-    const fetchCourses = async () => {
+    const fetchCoursesAndProgress = async () => {
       try {
-        const querySnapshot = await getDocs(collection(db, 'courses'));
-        const courseData: Course[] = querySnapshot.docs.map((doc) => ({
+        const coursesSnapshot = await getDocs(collection(db, 'courses'));
+        const courseData: Course[] = coursesSnapshot.docs.map((doc) => ({
           id: doc.id,
           ...doc.data(),
         })) as Course[];
         setCourses(courseData);
+
+        if (user) {
+            const progressSnapshot = await getDocs(collection(db, 'user_progress', user.uid, 'enrolled_courses'));
+            const progressData: Record<string, UserProgress> = {};
+            progressSnapshot.forEach(doc => {
+                progressData[doc.id] = doc.data() as UserProgress;
+            });
+            setUserProgress(progressData);
+        }
+
       } catch (error) {
-        console.error("Error fetching courses:", error);
+        console.error("Error fetching courses or progress:", error);
       } finally {
         setCourseLoading(false);
       }
     };
 
-    fetchCourses();
-  }, [user, loading, router]);
+    fetchCoursesAndProgress();
+  }, [user, authLoading, router]);
 
   useEffect(() => {
-  const fetchImages = async () => {
-    const imageUrls: Record<string, string> = {};
-    await Promise.all(
-      courses.map(async (course) => {
-        try {
-          const response = await fetch(
-            `/api/pexels?query=${encodeURIComponent(course.title)}`
-          );
-
-          if (response.ok) {
-            const data = await response.json();
-            if (data.imageUrl) {
-              imageUrls[course.id] = data.imageUrl;
-            }
-          } else {
-            console.error(
-              `Failed to fetch image for "${course.title}":`,
-              response.statusText
+    const fetchImages = async () => {
+      const imageUrls: Record<string, string> = {};
+      await Promise.all(
+        courses.map(async (course) => {
+          try {
+            const response = await fetch(
+              `/api/pexels?query=${encodeURIComponent(course.title)}`
             );
+            if (response.ok) {
+              const data = await response.json();
+              if (data.imageUrl) {
+                imageUrls[course.id] = data.imageUrl;
+              }
+            }
+          } catch (error) {
+            console.error(`Error fetching image for "${course.title}":`, error);
           }
-        } catch (error) {
-          console.error(`Error fetching image for "${course.title}":`, error);
+        })
+      );
+      setCourseImageUrls(imageUrls);
+    };
+
+    if (courses.length > 0) {
+      fetchImages();
+    }
+  }, [courses]);
+
+  const coursesWithProgress = useMemo(() => {
+      return courses.map(course => ({
+          ...course,
+          progress: userProgress[course.id]?.progress ?? 0,
+          isCompleted: userProgress[course.id]?.isCompleted ?? false,
+      }));
+  }, [courses, userProgress]);
+
+  const handleStartOrContinue = async (courseId: string) => {
+    if (!user) {
+        router.push('/login');
+        return;
+    }
+
+    const progressRef = doc(db, 'user_progress', user.uid, 'enrolled_courses', courseId);
+    
+    try {
+        const docSnap = await getDoc(progressRef);
+        if (!docSnap.exists()) {
+            const initialProgress = {
+                progress: 0,
+                completedLessons: [],
+                lastCompletedLesson: null,
+                isCompleted: false,
+                startedAt: serverTimestamp(),
+                lastAccessed: serverTimestamp(),
+            };
+            await setDoc(progressRef, initialProgress);
+            setUserProgress(prev => ({ ...prev, [courseId]: initialProgress }));
         }
-      })
-    );
-
-    setCourseImageUrls(imageUrls);
+        router.push(`/courses/${courseId}`);
+    } catch (error) {
+        console.error("Error enrolling in course: ", error);
+    }
   };
-
-  if (courses.length > 0) {
-    fetchImages();
-  }
-}, [courses]);
 
   const levels = [
     { value: 'all', label: 'All Levels' },
@@ -107,159 +155,85 @@ export default function CoursesPage() {
     { value: 'shopping', label: 'Shopping' }
   ];
 
-  const filteredCourses = courses.filter(course => {
+  const filteredCourses = coursesWithProgress.filter(course => {
     if (selectedLevel !== 'all' && course.level !== selectedLevel) return false;
     if (selectedCategory !== 'all' && course.category !== selectedCategory) return false;
     return true;
   });
 
-  const getLevelLabel = (level: string) => {
-    switch (level) {
-      case 'beginner': return 'Beginner';
-      case 'intermediate': return 'Intermediate';
-      case 'advanced': return 'Advanced';
-      default: return level;
-    }
-  };
+  const getLevelLabel = (level: string) => levels.find(l => l.value === level)?.label || level;
+  const getCategoryLabel = (category: string) => categories.find(c => c.value === category)?.label || category;
 
-  const getCategoryLabel = (category: string) => {
-    switch (category) {
-      case 'conversation': return 'Conversation';
-      case 'grammar': return 'Grammar';
-      case 'travel': return 'Travel';
-      case 'business': return 'Business';
-      case 'Food': return 'Food';
-      case 'shopping': return 'Shopping';
-      default: return category;
-    }
-  };
-
-  if (loading) return <Loading />;
-
+  if (authLoading || courseLoading) return <Loading />;
   if (!user) return <Loading />;
-
-  if (courseLoading) return <Loading />;
 
   return (
     <div className="min-h-screen bg-gray-50 py-8">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        {/* Header */}
         <div className="text-center mb-12">
           <h1 className="text-4xl font-bold text-gray-900 mb-4">Korean Courses</h1>
-          <p className="text-xl text-gray-600">
-            Improve your Korean skills with systematically structured learning courses
-          </p>
+          <p className="text-xl text-gray-600">Improve your Korean skills with systematically structured learning courses</p>
         </div>
 
-        {/* Filters */}
         <div className="bg-white rounded-lg shadow p-6 mb-8">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Select Level
-              </label>
-              <select
-                value={selectedLevel}
-                onChange={(e) => setSelectedLevel(e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-              >
-                {levels.map((level) => (
-                  <option key={level.value} value={level.value}>
-                    {level.label}
-                  </option>
-                ))}
+              <label className="block text-sm font-medium text-gray-700 mb-2">Select Level</label>
+              <select value={selectedLevel} onChange={(e) => setSelectedLevel(e.target.value)} className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500">
+                {levels.map((level) => <option key={level.value} value={level.value}>{level.label}</option>)}
               </select>
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Select Category
-              </label>
-              <select
-                value={selectedCategory}
-                onChange={(e) => setSelectedCategory(e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-              >
-                {categories.map((category) => (
-                  <option key={category.value} value={category.value}>
-                    {category.label}
-                  </option>
-                ))}
+              <label className="block text-sm font-medium text-gray-700 mb-2">Select Category</label>
+              <select value={selectedCategory} onChange={(e) => setSelectedCategory(e.target.value)} className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500">
+                {categories.map((category) => <option key={category.value} value={category.value}>{category.label}</option>)}
               </select>
             </div>
           </div>
         </div>
 
-        {/* Courses Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
           {filteredCourses.map((course) => (
-            <div key={course.id} className="bg-white rounded-lg shadow overflow-hidden hover:shadow-lg transition-shadow">
-              {/* Course Image */}
-              <div className="h-48 bg-gray-200 flex items-center justify-center">
-                {course.image ? <img src={courseImageUrls[course.id]} alt={course.title} className='w-full h-full object-cover' /> :
-                  <div className="text-gray-500 text-center">
-                    <svg className="w-16 h-16 mx-auto mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.246 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
-                    </svg>
-                    <p className="text-sm">Course Image</p>
-                  </div>}
+            <div key={course.id} className={`bg-white rounded-lg shadow overflow-hidden hover:shadow-lg transition-shadow ${course.isCompleted ? 'border-2 border-yellow-400' : ''}`}>
+              <div className="relative h-48 bg-gray-200 flex items-center justify-center">
+                {courseImageUrls[course.id] ? <img src={courseImageUrls[course.id]} alt={course.title} className='w-full h-full object-cover' /> : <div className="text-gray-500">Loading Image...</div>}
+                {course.isCompleted && (
+                    <div className="absolute top-2 right-2 flex items-center gap-1 bg-yellow-400 text-white font-bold px-2 py-1 rounded-md text-xs shadow-lg">
+                        <FiAward />
+                        <span>Completed</span>
+                    </div>
+                )}
               </div>
-
-              {/* Course Content */}
               <div className="p-6">
                 <div className="flex items-center justify-between mb-2">
-                  <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
-                    {getLevelLabel(course.level)}
-                  </span>
-                  <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
-                    {getCategoryLabel(course.category)}
-                  </span>
+                  <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">{getLevelLabel(course.level)}</span>
+                  <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">{getCategoryLabel(course.category)}</span>
                 </div>
-
                 <h3 className="text-xl font-semibold text-gray-900 mb-2">{course.title}</h3>
-                <p className="text-gray-600 text-sm mb-4">{course.description}</p>
-
+                <p className="text-gray-600 text-sm mb-4 h-10 overflow-hidden">{course.description}</p>
                 <div className="flex items-center justify-between text-sm text-gray-500 mb-4">
                   <span>⏱ {course.duration}</span>
                   <span>📚 {course.lessons} lessons</span>
                 </div>
+                
+                <div className="mb-4">
+                    <div className="flex justify-between text-sm text-gray-600 mb-1"><span>Progress</span><span>{course.progress}%</span></div>
+                    <div className="w-full bg-gray-200 rounded-full h-2"><div className={`${course.isCompleted ? 'bg-yellow-400' : 'bg-blue-600'} h-2 rounded-full`} style={{ width: `${course.progress}%` }}></div></div>
+                </div>
 
-                {course.progress > 0 && (
-                  <div className="mb-4">
-                    <div className="flex justify-between text-sm text-gray-600 mb-1">
-                      <span>Progress</span>
-                      <span>{course.progress}%</span>
-                    </div>
-                    <div className="w-full bg-gray-200 rounded-full h-2">
-                      <div
-                        className="bg-blue-600 h-2 rounded-full"
-                        style={{ width: `${course.progress}%` }}
-                      ></div>
-                    </div>
-                  </div>
-                )}
-
-                <div className="flex items-center justify-between">
-                  <span className="text-lg font-semibold text-green-600">
-                    Free
-                  </span>
-                  <Link
-                    href={`/courses/${course.id}`}
-                    className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors"
-                  >
-                    {course.progress > 0 ? 'Continue' : 'Start Learning'}
-                  </Link>
+                <div className="flex items-center justify-between mt-4">
+                  <span className="text-lg font-semibold text-green-600">Free</span>
+                  <button onClick={() => handleStartOrContinue(course.id)} className={`${course.isCompleted ? 'bg-green-600 hover:bg-green-700' : 'bg-blue-600 hover:bg-blue-700'} text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors w-auto text-center`}>
+                    {course.isCompleted ? 'Review Course' : (course.progress > 0 ? 'Continue Learning' : 'Start Learning')}
+                  </button>
                 </div>
               </div>
             </div>
           ))}
         </div>
 
-        {/* No Results */}
         {filteredCourses.length === 0 && (
           <div className="text-center py-12">
-            <svg className="w-16 h-16 text-gray-400 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.172 16.172a4 4 0 015.656 0M9 12h6m-6-4h6m2 5.291A7.962 7.962 0 0112 15c-2.34 0-4.47-.881-6.08-2.33" />
-            </svg>
             <h3 className="text-lg font-medium text-gray-900 mb-2">No results found</h3>
             <p className="text-gray-500">Try different filter conditions.</p>
           </div>

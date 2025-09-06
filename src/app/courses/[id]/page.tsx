@@ -40,10 +40,10 @@ export default function CourseDetailPage({ params }: { params: Promise<{ id: str
 
     // --- Data Fetching Effect ---
     useEffect(() => {
-        if (authLoading || !user) {
+        /* if (authLoading || !user) {
             if (!authLoading) router.replace('/login');
             return;
-        }
+        } */
 
         const fetchCourseAndProgress = async () => {
             try {
@@ -57,6 +57,7 @@ export default function CourseDetailPage({ params }: { params: Promise<{ id: str
                 const courseDetails = { id: courseDoc.id, ...courseData, lessonsCount: lessons.length, lessons };
                 setCourse(courseDetails);
 
+                if (!user) return;
                 const progressRef = doc(db, 'user_progress', user.uid, 'enrolled_courses', id);
                 const progressSnap = await getDoc(progressRef);
                 if (progressSnap.exists()) {

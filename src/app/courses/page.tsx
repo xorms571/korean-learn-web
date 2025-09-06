@@ -22,10 +22,10 @@ interface Course {
 }
 
 interface UserProgress {
-    progress: number;
-    isCompleted?: boolean;
-    completedLessons?: number[];
-    lastCompletedLesson?: number | null;
+  progress: number;
+  isCompleted?: boolean;
+  completedLessons?: number[];
+  lastCompletedLesson?: number | null;
 }
 
 export default function CoursesPage() {
@@ -39,12 +39,12 @@ export default function CoursesPage() {
   const router = useRouter();
 
   useEffect(() => {
-    if (authLoading) return;
+    /* if (authLoading) return;
 
     if (!user) {
       router.replace('/login');
       return;
-    }
+    } */
 
     const fetchCoursesAndProgress = async () => {
       try {
@@ -56,12 +56,12 @@ export default function CoursesPage() {
         setCourses(courseData);
 
         if (user) {
-            const progressSnapshot = await getDocs(collection(db, 'user_progress', user.uid, 'enrolled_courses'));
-            const progressData: Record<string, UserProgress> = {};
-            progressSnapshot.forEach(doc => {
-                progressData[doc.id] = doc.data() as UserProgress;
-            });
-            setUserProgress(progressData);
+          const progressSnapshot = await getDocs(collection(db, 'user_progress', user.uid, 'enrolled_courses'));
+          const progressData: Record<string, UserProgress> = {};
+          progressSnapshot.forEach(doc => {
+            progressData[doc.id] = doc.data() as UserProgress;
+          });
+          setUserProgress(progressData);
         }
 
       } catch (error) {
@@ -103,38 +103,38 @@ export default function CoursesPage() {
   }, [courses]);
 
   const coursesWithProgress = useMemo(() => {
-      return courses.map(course => ({
-          ...course,
-          progress: userProgress[course.id]?.progress ?? 0,
-          isCompleted: userProgress[course.id]?.isCompleted ?? false,
-      }));
+    return courses.map(course => ({
+      ...course,
+      progress: userProgress[course.id]?.progress ?? 0,
+      isCompleted: userProgress[course.id]?.isCompleted ?? false,
+    }));
   }, [courses, userProgress]);
 
   const handleStartOrContinue = async (courseId: string) => {
-    if (!user) {
+    /* if (!user) {
         router.push('/login');
         return;
-    }
-
+    } */
+    router.push(`/courses/${courseId}`);
+    if (!user) return;
     const progressRef = doc(db, 'user_progress', user.uid, 'enrolled_courses', courseId);
-    
+
     try {
-        const docSnap = await getDoc(progressRef);
-        if (!docSnap.exists()) {
-            const initialProgress = {
-                progress: 0,
-                completedLessons: [],
-                lastCompletedLesson: null,
-                isCompleted: false,
-                startedAt: serverTimestamp(),
-                lastAccessed: serverTimestamp(),
-            };
-            await setDoc(progressRef, initialProgress);
-            setUserProgress(prev => ({ ...prev, [courseId]: initialProgress }));
-        }
-        router.push(`/courses/${courseId}`);
+      const docSnap = await getDoc(progressRef);
+      if (!docSnap.exists()) {
+        const initialProgress = {
+          progress: 0,
+          completedLessons: [],
+          lastCompletedLesson: null,
+          isCompleted: false,
+          startedAt: serverTimestamp(),
+          lastAccessed: serverTimestamp(),
+        };
+        await setDoc(progressRef, initialProgress);
+        setUserProgress(prev => ({ ...prev, [courseId]: initialProgress }));
+      }
     } catch (error) {
-        console.error("Error enrolling in course: ", error);
+      console.error("Error enrolling in course: ", error);
     }
   };
 
@@ -165,11 +165,11 @@ export default function CoursesPage() {
   const getLevelLabel = (level: string) => levels.find(l => l.value === level)?.label || level;
   const getCategoryLabel = (category: string) => categories.find(c => c.value === category)?.label || category;
 
-  if (authLoading || courseLoading) return <Loading />;
-  if (!user) return <Loading />;
+  if (/* authLoading || */ courseLoading) return <Loading />;
+  //if (!user) return <Loading />;
 
   return (
-    <div className="min-h-screen bg-gray-50 py-8">
+    <div className="bg-gray-50 py-8">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="text-center mb-12">
           <h1 className="text-4xl font-bold text-gray-900 mb-4">Korean Courses</h1>
@@ -199,10 +199,10 @@ export default function CoursesPage() {
               <div className="relative h-48 bg-gray-200 flex items-center justify-center">
                 {courseImageUrls[course.id] ? <img src={courseImageUrls[course.id]} alt={course.title} className='w-full h-full object-cover' /> : <div className="text-gray-500">Loading Image...</div>}
                 {course.isCompleted && (
-                    <div className="absolute top-2 right-2 flex items-center gap-1 bg-yellow-400 text-white font-bold px-2 py-1 rounded-md text-xs shadow-lg">
-                        <FiAward />
-                        <span>Completed</span>
-                    </div>
+                  <div className="absolute top-2 right-2 flex items-center gap-1 bg-yellow-400 text-white font-bold px-2 py-1 rounded-md text-xs shadow-lg">
+                    <FiAward />
+                    <span>Completed</span>
+                  </div>
                 )}
               </div>
               <div className="p-6">
@@ -216,10 +216,10 @@ export default function CoursesPage() {
                   <span>⏱ {course.duration}</span>
                   <span>📚 {course.lessons} lessons</span>
                 </div>
-                
+
                 <div className="mb-4">
-                    <div className="flex justify-between text-sm text-gray-600 mb-1"><span>Progress</span><span>{course.progress}%</span></div>
-                    <div className="w-full bg-gray-200 rounded-full h-2"><div className={`${course.isCompleted ? 'bg-yellow-400' : 'bg-blue-600'} h-2 rounded-full`} style={{ width: `${course.progress}%` }}></div></div>
+                  <div className="flex justify-between text-sm text-gray-600 mb-1"><span>Progress</span><span>{course.progress}%</span></div>
+                  <div className="w-full bg-gray-200 rounded-full h-2"><div className={`${course.isCompleted ? 'bg-yellow-400' : 'bg-blue-600'} h-2 rounded-full`} style={{ width: `${course.progress}%` }}></div></div>
                 </div>
 
                 <div className="flex items-center justify-between mt-4">

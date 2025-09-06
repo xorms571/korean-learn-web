@@ -2,7 +2,7 @@ import Link from 'next/link';
 
 export default function Home() {
   return (
-    <div className="min-h-screen">
+    <div>
       {/* Hero Section */}
       <section className="bg-gradient-to-r from-blue-600 to-purple-600 text-white py-20">
         <div className="flex lg:block flex-col items-center max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">

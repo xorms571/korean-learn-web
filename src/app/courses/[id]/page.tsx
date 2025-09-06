@@ -30,6 +30,7 @@ export default function CourseDetailPage({ params }: { params: Promise<{ id: str
     const [course, setCourse] = useState<Course | null>(null);
     const [courseProgress, setCourseProgress] = useState<CourseProgress | null>(null);
     const [loading, setLoading] = useState(true);
+    const [imageLoading, setImageLoading] = useState(true);
     const [currentLessonIndex, setCurrentLessonIndex] = useState(0);
     const [exampleImageUrls, setExampleImageUrls] = useState<Record<string, string>>({});
     const [isQuizActive, setIsQuizActive] = useState(false);
@@ -85,10 +86,12 @@ export default function CourseDetailPage({ params }: { params: Promise<{ id: str
                 for (const key in currentLesson.exampleSentences) {
                     const sentence = currentLesson.exampleSentences[key];
                     try {
+                        setImageLoading(true)
                         const response = await fetch(`/api/pexels?query=${encodeURIComponent(sentence.english)}`);
                         if (response.ok) {
                             const data = await response.json();
                             if (data.imageUrl) newImageUrls[key] = data.imageUrl;
+                            setImageLoading(false);
                         }
                     } catch (error) {
                         console.error(`Error fetching image for "${sentence.english}"`, error);
@@ -97,7 +100,7 @@ export default function CourseDetailPage({ params }: { params: Promise<{ id: str
                 setExampleImageUrls(newImageUrls);
             };
             fetchImages();
-        } 
+        }
     }, [currentLesson]);
 
     // --- Study Time Tracking Effect ---
@@ -228,7 +231,7 @@ export default function CourseDetailPage({ params }: { params: Promise<{ id: str
                         ) : (
                             <>
                                 {currentLesson ? (
-                                    <div className="bg-white rounded-lg shadow-md p-6">
+                                    <div className="bg-white rounded-lg md:shadow-md md:p-6">
                                         <div className="mb-6">
                                             <h2 className="text-3xl font-bold text-gray-800">Lesson {currentLesson.lessonNumber}: {currentLesson.title}</h2>
                                             <p className="text-gray-600 mt-1">{currentLesson.content}</p>
@@ -237,10 +240,12 @@ export default function CourseDetailPage({ params }: { params: Promise<{ id: str
                                             <div className="space-y-6">
                                                 <h3 className="text-2xl font-semibold text-gray-700 border-b pb-2">Example Sentences</h3>
                                                 {Object.entries(currentLesson.exampleSentences).map(([key, ex]) => (
-                                                    <div key={key} className="bg-gray-50 rounded-lg p-4 flex items-start gap-4 transition-shadow hover:shadow-lg">
-                                                        {exampleImageUrls[key] && (
-                                                            <img src={exampleImageUrls[key]} alt={ex.korean} className="w-32 h-32 object-cover rounded-md" />
-                                                        )}
+                                                    <div key={key} className="bg-gray-50 rounded-lg p-2 md:p-4 flex items-center md:items-start gap-4 transition-shadow hover:shadow-lg">
+                                                        <div className='w-20 h-20 md:w-32 md:h-32 bg-slate-100 rounded-md overflow-hidden'>
+                                                            {imageLoading ? <div className='w-full h-full flex justify-center items-center'><div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div></div> :
+                                                                exampleImageUrls[key] &&
+                                                                <img src={exampleImageUrls[key]} alt={ex.korean} className="w-full h-full object-cover" />}
+                                                        </div>
                                                         <div className="flex-1">
                                                             <div className="flex items-center justify-between">
                                                                 <p className="text-lg font-semibold text-gray-800">{ex.korean}</p>

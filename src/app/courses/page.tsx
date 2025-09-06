@@ -152,7 +152,8 @@ export default function CoursesPage() {
     { value: 'travel', label: 'Travel' },
     { value: 'business', label: 'Business' },
     { value: 'Food', label: 'Food' },
-    { value: 'shopping', label: 'Shopping' }
+    { value: 'shopping', label: 'Shopping' },
+    { value: 'Alphabet', label: 'Alphabet' }
   ];
 
   const filteredCourses = coursesWithProgress.filter(course => {

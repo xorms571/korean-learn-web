@@ -5,23 +5,23 @@ export default function Home() {
     <div className="min-h-screen">
       {/* Hero Section */}
       <section className="bg-gradient-to-r from-blue-600 to-purple-600 text-white py-20">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <h1 className=" text-4xl md:text-6xl font-bold mb-6">
+        <div className="flex lg:block flex-col items-center max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+          <h1 className="w-3/4 lg:w-auto text-4xl md:text-6xl font-bold mb-6">
             Learn Korean Easily and Fun
           </h1>
-          <p className="text-xl md:text-2xl mb-8 text-blue-100">
+          <p className="w-10/12 lg:w-auto text-xl md:text-2xl mb-8 text-blue-100">
             Improve your Korean skills through systematic curriculum and practice
           </p>
-          <div className="md:space-x-4">
+          <div className="flex flex-col items-center md:block md:space-x-4">
             <Link 
               href="/courses" 
-              className="block mb-4 md:mb-0 md:inline bg-white text-blue-600 px-8 py-3 rounded-lg text-lg font-semibold hover:bg-gray-100 transition-colors"
+              className="block w-48 mb-4 md:mb-0 md:inline border-2 border-white bg-white text-blue-600 py-1 md:py-3 md:px-8 rounded-lg text-lg font-semibold hover:bg-gray-100 transition-colors"
             >
               Start Learning
             </Link>
             <Link 
               href="/signup" 
-              className="block md:inline border-2 border-white text-white px-8 py-3 rounded-lg text-lg font-semibold hover:bg-white hover:text-blue-600 transition-colors"
+              className="box-border block w-48 md:inline border-2 border-white text-white py-1 md:py-3 md:px-8 rounded-lg text-lg font-semibold hover:bg-white hover:text-blue-600 transition-colors"
             >
               Sign Up Free
             </Link>

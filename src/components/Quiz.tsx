@@ -175,7 +175,7 @@ export default function Quiz({ lessons, courseId, onQuizFinish }: QuizProps) {
     return (
         // ... (The main quiz view remains the same)
         <div className="bg-white rounded-lg shadow-md p-6">
-            <div className="flex items-start justify-between mb-6">
+            <div className="flex flex-col md:flex-row gap-4 items-start justify-between mb-6">
                 <div>
                     <p className="text-sm text-gray-500">Question {currentQuizIndex + 1} of {quizQuestions.length}</p>
                     <h3 className="text-2xl font-bold text-gray-800 mt-2">{currentQuestion.questionText}</h3>

@@ -10,207 +10,227 @@ export default function TestFirebasePage() {
   const seedData = async () => {
     setMessage('데이터 업로드 중...');
     try {
-      const shoppingLessons = [
+      const courseLessons = [
         {
-          id: 'lesson-01-greetings',
+          id: "lesson-01-intro",
           lessonNumber: 1,
-          title: 'Entering a Store and Greetings',
-          content: 'Learn how to greet when entering a store and respond politely.',
+          title: "Introduction to Hangul",
+          content:
+            "Hangul is the Korean alphabet system created in the 15th century by King Sejong. It consists of 14 consonants and 10 vowels. In this lesson, you will learn the concept of syllable blocks and how letters combine.",
           exampleSentences: {
-            ex1: { korean: '어서 오세요.', english: 'Welcome.', pronunciation: 'Eo-seo o-se-yo.' },
-            ex2: { korean: '안녕하세요.', english: 'Hello.', pronunciation: 'An-nyeong-ha-se-yo.' },
-            ex3: { korean: '처음 왔어요.', english: 'It’s my first time here.', pronunciation: 'Cheo-eum wa-sseo-yo.' },
-            ex4: { korean: '구경해도 돼요?', english: 'May I look around?', pronunciation: 'Gu-gyeong-hae-do dwae-yo?' },
-            ex5: { korean: '잠시 둘러볼게요.', english: 'I’ll just look around.', pronunciation: 'Jam-si dul-reo-bol-gge-yo.' },
-            ex6: { korean: '감사합니다.', english: 'Thank you.', pronunciation: 'Gam-sa-ham-ni-da.' },
+            ex1: {
+              korean: "한글",
+              english: "Hangul (Korean alphabet)",
+              pronunciation: "Han-geul",
+            },
+            ex2: {
+              korean: "훈민정음",
+              english: "Hunminjeongeum (The original name of Hangul)",
+              pronunciation: "Hun-min-jeong-eum",
+            },
+            ex3: { korean: "자음", english: "Consonants", pronunciation: "Ja-eum" },
+            ex4: { korean: "모음", english: "Vowels", pronunciation: "Mo-eum" },
           },
-          tip: 'Korean shopkeepers often greet customers warmly. A polite response is appreciated.',
-          image: '/lesson/shopping_01.png',
+          tip: "Remember: Hangul letters are grouped into blocks, not written linearly like English.",
+          image: "/lesson/hangeul_intro.png",
           createdAt: new Date(),
         },
         {
-          id: 'lesson-02-asking-price',
+          id: "lesson-02-consonants1",
           lessonNumber: 2,
-          title: 'Asking for Prices',
-          content: 'Learn how to ask the price of an item.',
+          title: "Basic Consonants ㄱ, ㄴ, ㄷ, ㄹ",
+          content:
+            "Learn the first four basic consonants. ㄱ sounds like 'g/k', ㄴ is like 'n', ㄷ is like 'd/t', and ㄹ is similar to 'r/l'.",
           exampleSentences: {
-            ex1: { korean: '이거 얼마예요?', english: 'How much is this?', pronunciation: 'I-geo eol-ma-ye-yo?' },
-            ex2: { korean: '저건 얼마예요?', english: 'How much is that?', pronunciation: 'Jeo-geon eol-ma-ye-yo?' },
-            ex3: { korean: '조금 비싸네요.', english: 'It’s a bit expensive.', pronunciation: 'Jo-geum bi-ssa-ne-yo.' },
-            ex4: { korean: '할인 있어요?', english: 'Do you have a discount?', pronunciation: 'Hal-in i-sseo-yo?' },
-            ex5: { korean: '더 싼 거 있어요?', english: 'Do you have something cheaper?', pronunciation: 'Deo ssan geo i-sseo-yo?' },
-            ex6: { korean: '가격표 있어요?', english: 'Is there a price tag?', pronunciation: 'Ga-gyeok-pyo i-sseo-yo?' },
+            ex1: { korean: "가", english: "ga", pronunciation: "ga" },
+            ex2: { korean: "나", english: "na", pronunciation: "na" },
+            ex3: { korean: "다", english: "da", pronunciation: "da" },
+            ex4: { korean: "라", english: "ra/la", pronunciation: "ra / la" },
           },
-          tip: 'In traditional markets, bargaining is common. In big stores, prices are fixed.',
-          image: '/lesson/shopping_02.png',
+          tip: "Practice repeating these sounds slowly, then combine them with vowels.",
+          image: "/lesson/hangeul_consonants1.png",
           createdAt: new Date(),
         },
         {
-          id: 'lesson-03-trying',
+          id: "lesson-03-consonants2",
           lessonNumber: 3,
-          title: 'Trying Things On',
-          content: 'Learn useful phrases for fitting rooms and trying clothes.',
+          title: "Basic Consonants ㅁ, ㅂ, ㅅ, ㅇ",
+          content:
+            "Learn four more consonants. ㅁ sounds like 'm', ㅂ is like 'b/p', ㅅ is 's', and ㅇ is silent at the beginning but 'ng' at the end.",
           exampleSentences: {
-            ex1: { korean: '이거 입어봐도 돼요?', english: 'Can I try this on?', pronunciation: 'I-geo i-beo-bwa-do dwae-yo?' },
-            ex2: { korean: '탈의실 어디예요?', english: 'Where is the fitting room?', pronunciation: 'Tal-ui-sil eo-di-ye-yo?' },
-            ex3: { korean: '다른 사이즈 있어요?', english: 'Do you have another size?', pronunciation: 'Da-reun sa-i-jeu i-sseo-yo?' },
-            ex4: { korean: '좀 큰 거 있어요?', english: 'Do you have something bigger?', pronunciation: 'Jom keun geo i-sseo-yo?' },
-            ex5: { korean: '좀 작은 거 있어요?', english: 'Do you have something smaller?', pronunciation: 'Jom jag-eun geo i-sseo-yo?' },
-            ex6: { korean: '거울 있어요?', english: 'Is there a mirror?', pronunciation: 'Geo-ul i-sseo-yo?' },
+            ex1: { korean: "마", english: "ma", pronunciation: "ma" },
+            ex2: { korean: "바", english: "ba", pronunciation: "ba" },
+            ex3: { korean: "사", english: "sa", pronunciation: "sa" },
+            ex4: { korean: "아", english: "a", pronunciation: "a" },
           },
-          tip: 'Most clothing stores in Korea allow trying clothes before purchase.',
-          image: '/lesson/shopping_03.png',
+          tip: "Note the special rule of ㅇ: silent at the start, 'ng' at the end.",
+          image: "/lesson/hangeul_consonants2.png",
           createdAt: new Date(),
         },
         {
-          id: 'lesson-04-colors',
+          id: "lesson-04-consonants3",
           lessonNumber: 4,
-          title: 'Asking about Colors',
-          content: 'Learn how to ask if an item comes in different colors.',
+          title: "Basic Consonants ㅈ, ㅊ, ㅋ, ㅌ, ㅍ, ㅎ",
+          content:
+            "Learn the remaining basic consonants. ㅈ = j, ㅊ = ch, ㅋ = k (strong), ㅌ = t (strong), ㅍ = p (strong), ㅎ = h.",
           exampleSentences: {
-            ex1: { korean: '이거 다른 색 있어요?', english: 'Do you have this in another color?', pronunciation: 'I-geo da-reun saek i-sseo-yo?' },
-            ex2: { korean: '빨간색 있어요?', english: 'Do you have red?', pronunciation: 'Ppal-gan-saek i-sseo-yo?' },
-            ex3: { korean: '검은색 있나요?', english: 'Do you have black?', pronunciation: 'Geo-meun-saek inn-a-yo?' },
-            ex4: { korean: '하얀색도 있어요?', english: 'Do you also have white?', pronunciation: 'Ha-yan-saek-do i-sseo-yo?' },
-            ex5: { korean: '이 색이 좋아요.', english: 'I like this color.', pronunciation: 'I saek-i jo-a-yo.' },
-            ex6: { korean: '다른 색 추천해 주세요.', english: 'Please recommend another color.', pronunciation: 'Da-reun saek chu-cheon-hae ju-se-yo.' },
+            ex1: { korean: "자", english: "ja", pronunciation: "ja" },
+            ex2: { korean: "차", english: "cha", pronunciation: "cha" },
+            ex3: { korean: "카", english: "ka", pronunciation: "ka" },
+            ex4: { korean: "타", english: "ta", pronunciation: "ta" },
+            ex5: { korean: "파", english: "pa", pronunciation: "pa" },
+            ex6: { korean: "하", english: "ha", pronunciation: "ha" },
           },
-          tip: 'In Korea, color is an important part of fashion expression.',
-          image: '/lesson/shopping_04.png',
+          tip: "Notice how aspiration (extra breath) makes sounds stronger.",
+          image: "/lesson/hangeul_consonants3.png",
           createdAt: new Date(),
         },
-        // lesson-05
         {
-          id: 'lesson-05-paying',
+          id: "lesson-05-vowels1",
           lessonNumber: 5,
-          title: 'Paying at the Counter',
-          content: 'Learn essential phrases for making payments in Korea.',
+          title: "Basic Vowels ㅏ, ㅑ, ㅓ, ㅕ",
+          content:
+            "Learn the vowels: ㅏ = a, ㅑ = ya, ㅓ = eo, ㅕ = yeo. These are pronounced with open mouth sounds.",
           exampleSentences: {
-            ex1: { korean: '카드 돼요?', english: 'Do you take cards?', pronunciation: 'Ka-deu dwae-yo?' },
-            ex2: { korean: '현금으로 계산할게요.', english: 'I’ll pay in cash.', pronunciation: 'Hyeon-geum-eu-ro gye-san-hal-gge-yo.' },
-            ex3: { korean: '카드로 할게요.', english: 'I’ll pay by card.', pronunciation: 'Ka-deu-ro hal-gge-yo.' },
-            ex4: { korean: '할부 돼요?', english: 'Can I pay in installments?', pronunciation: 'Hal-bu dwae-yo?' },
-            ex5: { korean: '영수증 주세요.', english: 'Please give me a receipt.', pronunciation: 'Yeong-su-jeung ju-se-yo.' },
-            ex6: { korean: '포인트 적립 돼요?', english: 'Can I collect points?', pronunciation: 'Po-in-teu jeok-rip dwae-yo?' },
+            ex1: { korean: "아", english: "a", pronunciation: "a" },
+            ex2: { korean: "야", english: "ya", pronunciation: "ya" },
+            ex3: { korean: "어", english: "eo", pronunciation: "eo" },
+            ex4: { korean: "여", english: "yeo", pronunciation: "yeo" },
           },
-          tip: 'Most stores in Korea accept both card and cash. Mobile payment is also very common.',
-          image: '/lesson/shopping_05.png',
+          tip: "ㅓ (eo) and ㅕ (yeo) are unique sounds, not found in English.",
+          image: "/lesson/hangeul_vowels1.png",
           createdAt: new Date(),
         },
-
-        // lesson-06
         {
-          id: 'lesson-06-refund',
+          id: "lesson-06-vowels2",
           lessonNumber: 6,
-          title: 'Refunds and Exchanges',
-          content: 'Learn how to ask for a refund or exchange items.',
+          title: "Basic Vowels ㅗ, ㅛ, ㅜ, ㅠ",
+          content:
+            "Learn the vowels: ㅗ = o, ㅛ = yo, ㅜ = u, ㅠ = yu. These are rounded lip sounds.",
           exampleSentences: {
-            ex1: { korean: '환불해 주세요.', english: 'Please give me a refund.', pronunciation: 'Hwan-bul-hae ju-se-yo.' },
-            ex2: { korean: '교환하고 싶어요.', english: 'I want to exchange this.', pronunciation: 'Gyo-hwan-ha-go si-peo-yo.' },
-            ex3: { korean: '영수증 있어요.', english: 'I have the receipt.', pronunciation: 'Yeong-su-jeung i-sseo-yo.' },
-            ex4: { korean: '며칠 이내에 환불할 수 있어요?', english: 'How many days do I have to get a refund?', pronunciation: 'Myeo-chil i-nae-e hwan-bul-hal su i-sseo-yo?' },
-            ex5: { korean: '불량품이에요.', english: 'This is defective.', pronunciation: 'Bul-ryang-pum-i-e-yo.' },
-            ex6: { korean: '색이 달라요.', english: 'The color is different.', pronunciation: 'Saek-i dal-la-yo.' },
+            ex1: { korean: "오", english: "o", pronunciation: "o" },
+            ex2: { korean: "요", english: "yo", pronunciation: "yo" },
+            ex3: { korean: "우", english: "u", pronunciation: "u" },
+            ex4: { korean: "유", english: "yu", pronunciation: "yu" },
           },
-          tip: 'Refunds and exchanges usually require a receipt and are allowed within 7 to 14 days.',
-          image: '/lesson/shopping_06.png',
+          tip: "Practice rounding your lips when pronouncing ㅗ and ㅜ.",
+          image: "/lesson/hangeul_vowels2.png",
           createdAt: new Date(),
         },
-
-        // lesson-07
         {
-          id: 'lesson-07-souvenirs',
+          id: "lesson-07-vowels3",
           lessonNumber: 7,
-          title: 'Buying Souvenirs',
-          content: 'Learn expressions to buy traditional gifts and souvenirs.',
+          title: "Basic Vowels ㅡ, ㅣ",
+          content:
+            "Learn the vowels: ㅡ = eu, ㅣ = i. ㅡ is a unique sound with the tongue flat in the middle.",
           exampleSentences: {
-            ex1: { korean: '기념품 있어요?', english: 'Do you have souvenirs?', pronunciation: 'Gi-nyeom-pum i-sseo-yo?' },
-            ex2: { korean: '이거 선물용이에요.', english: 'This is for a gift.', pronunciation: 'I-geo seon-mul-yong-i-e-yo.' },
-            ex3: { korean: '포장해 주세요.', english: 'Please wrap it.', pronunciation: 'Po-jang-hae ju-se-yo.' },
-            ex4: { korean: '더 전통적인 것 있어요?', english: 'Do you have something more traditional?', pronunciation: 'Deo jeon-tong-jeog-in geot i-sseo-yo?' },
-            ex5: { korean: '한국에서 유명한 선물은 뭐예요?', english: 'What gifts are famous in Korea?', pronunciation: 'Han-gug-e-seo yu-myeong-han seon-mul-eun mwo-ye-yo?' },
-            ex6: { korean: '작은 사이즈 있어요?', english: 'Do you have a smaller size?', pronunciation: 'Jag-eun sa-i-jeu i-sseo-yo?' },
+            ex1: { korean: "으", english: "eu", pronunciation: "eu" },
+            ex2: { korean: "이", english: "i", pronunciation: "i" },
           },
-          tip: 'Popular souvenirs in Korea include K-pop goods, hanbok accessories, and snacks.',
-          image: '/lesson/shopping_07.png',
+          tip: "ㅣ is simple like 'ee' in 'see'. ㅡ has no English equivalent, practice carefully.",
+          image: "/lesson/hangeul_vowels3.png",
           createdAt: new Date(),
         },
-
-        // lesson-08
         {
-          id: 'lesson-08-traditional-market',
+          id: "lesson-08-combined-vowels",
           lessonNumber: 8,
-          title: 'At the Traditional Market',
-          content: 'Learn phrases useful in Korean traditional markets.',
+          title: "Combined Vowels",
+          content:
+            "Hangul also has combined vowels like ㅐ (ae), ㅒ (yae), ㅔ (e), ㅖ (ye), ㅘ (wa), ㅙ (wae), ㅚ (oe), ㅝ (wo), ㅞ (we), ㅟ (wi), ㅢ (ui).",
           exampleSentences: {
-            ex1: { korean: '덤 좀 주세요.', english: 'Please give me a little extra.', pronunciation: 'Deom jom ju-se-yo.' },
-            ex2: { korean: '서비스 있어요?', english: 'Do you give freebies?', pronunciation: 'Seo-bi-seu i-sseo-yo?' },
-            ex3: { korean: '더 신선한 거 있어요?', english: 'Do you have fresher ones?', pronunciation: 'Deo sin-seon-han geo i-sseo-yo?' },
-            ex4: { korean: '반만 팔 수 있어요?', english: 'Can you sell me just half?', pronunciation: 'Ban-man pal su i-sseo-yo?' },
-            ex5: { korean: '시식할 수 있어요?', english: 'Can I taste this?', pronunciation: 'Si-sik-hal su i-sseo-yo?' },
-            ex6: { korean: '시장 언제 문 닫아요?', english: 'When does the market close?', pronunciation: 'Si-jang eon-je mun da-da-yo?' },
+            ex1: { korean: "애", english: "ae", pronunciation: "ae" },
+            ex2: { korean: "예", english: "ye", pronunciation: "ye" },
+            ex3: { korean: "왜", english: "wae", pronunciation: "wae" },
+            ex4: { korean: "위", english: "wi", pronunciation: "wi" },
+            ex5: { korean: "의", english: "ui", pronunciation: "ui" },
           },
-          tip: 'Bargaining and asking for freebies are common in traditional markets.',
-          image: '/lesson/shopping_08.png',
+          tip: "These sounds are combinations of basic vowels. Some are very common in words.",
+          image: "/lesson/hangeul_combined_vowels.png",
           createdAt: new Date(),
         },
-
-        // lesson-09
         {
-          id: 'lesson-09-online',
+          id: "lesson-09-syllable-blocks",
           lessonNumber: 9,
-          title: 'Online Shopping',
-          content: 'Learn Korean phrases used for online shopping.',
+          title: "Forming Syllable Blocks",
+          content:
+            "Hangul letters form blocks that represent syllables. A block must have at least one consonant and one vowel.",
           exampleSentences: {
-            ex1: { korean: '배송비 얼마예요?', english: 'How much is the shipping fee?', pronunciation: 'Bae-song-bi eol-ma-ye-yo?' },
-            ex2: { korean: '언제 도착해요?', english: 'When will it arrive?', pronunciation: 'Eon-je do-chak-hae-yo?' },
-            ex3: { korean: '환불 규정은 어떻게 돼요?', english: 'What is the refund policy?', pronunciation: 'Hwan-bul gyu-jeong-eun eo-tteo-ke dwae-yo?' },
-            ex4: { korean: '리뷰 보여 주세요.', english: 'Please show me the reviews.', pronunciation: 'Ri-byu bo-yeo ju-se-yo.' },
-            ex5: { korean: '품절이에요?', english: 'Is it out of stock?', pronunciation: 'Pum-jeol-i-e-yo?' },
-            ex6: { korean: '배송 추적할 수 있어요?', english: 'Can I track the delivery?', pronunciation: 'Bae-song chu-jeok-hal su i-sseo-yo?' },
+            ex1: { korean: "가", english: "ga", pronunciation: "ga" },
+            ex2: { korean: "고", english: "go", pronunciation: "go" },
+            ex3: { korean: "구", english: "gu", pronunciation: "gu" },
+            ex4: { korean: "기", english: "gi", pronunciation: "gi" },
           },
-          tip: 'Korea has fast shipping. Many sites offer same-day or next-day delivery.',
-          image: '/lesson/shopping_09.png',
+          tip: "Think of syllable blocks as squares made of consonant + vowel (+ optional final consonant).",
+          image: "/lesson/hangeul_syllable_blocks.png",
           createdAt: new Date(),
         },
-
-        // lesson-10
         {
-          id: 'lesson-10-discount-events',
+          id: "lesson-10-batchim",
           lessonNumber: 10,
-          title: 'Discounts and Events',
-          content: 'Learn useful expressions for discounts, sales, and promotions.',
+          title: "Final Consonants (Batchim)",
+          content:
+            "A syllable block can end with a consonant, called 받침 (batchim). It changes the sound slightly.",
           exampleSentences: {
-            ex1: { korean: '세일 중이에요?', english: 'Is this on sale?', pronunciation: 'Se-il jung-i-e-yo?' },
-            ex2: { korean: '몇 퍼센트 할인이에요?', english: 'What percentage is the discount?', pronunciation: 'Myeot peo-sen-teu hal-in-i-e-yo?' },
-            ex3: { korean: '1+1 행사예요.', english: 'It’s a buy one get one free event.', pronunciation: 'One-peul-leo-seu one haeng-sa-ye-yo.' },
-            ex4: { korean: '사은품 있어요?', english: 'Do you have a free gift?', pronunciation: 'Sa-eun-pum i-sseo-yo?' },
-            ex5: { korean: '쿠폰 사용할 수 있어요?', english: 'Can I use a coupon?', pronunciation: 'Ku-pon sa-yong-hal su i-sseo-yo?' },
-            ex6: { korean: '언제까지 세일해요?', english: 'Until when is the sale?', pronunciation: 'Eon-je-kka-ji se-il-hae-yo?' },
+            ex1: { korean: "강", english: "gang", pronunciation: "gang" },
+            ex2: { korean: "밥", english: "bap", pronunciation: "bap" },
+            ex3: { korean: "꽃", english: "kkot", pronunciation: "kkot" },
+            ex4: { korean: "집", english: "jip", pronunciation: "jip" },
           },
-          tip: 'Major discount events include Black Friday, seasonal sales, and member promotions.',
-          image: '/lesson/shopping_10.png',
+          tip: "Batchim can be one consonant. Pronounce it softly at the end.",
+          image: "/lesson/hangeul_batchim.png",
           createdAt: new Date(),
         },
-
+        {
+          id: "lesson-11-practice-words",
+          lessonNumber: 11,
+          title: "Practice Words",
+          content:
+            "Now practice reading simple Korean words formed from basic syllables.",
+          exampleSentences: {
+            ex1: { korean: "학교", english: "school", pronunciation: "hak-gyo" },
+            ex2: { korean: "엄마", english: "mom", pronunciation: "eom-ma" },
+            ex3: { korean: "아빠", english: "dad", pronunciation: "a-ppa" },
+            ex4: { korean: "한국", english: "Korea", pronunciation: "han-guk" },
+          },
+          tip: "Practice slowly, syllable by syllable, then faster like natural speech.",
+          image: "/lesson/hangeul_practice_words.png",
+          createdAt: new Date(),
+        },
+        {
+          id: "lesson-12-review",
+          lessonNumber: 12,
+          title: "Review and Quiz",
+          content:
+            "Review all consonants and vowels. Try reading and writing without help.",
+          exampleSentences: {
+            ex1: { korean: "가나다", english: "ga-na-da (alphabet order)", pronunciation: "ga-na-da" },
+            ex2: { korean: "라마바", english: "ra-ma-ba", pronunciation: "ra-ma-ba" },
+            ex3: { korean: "사아자", english: "sa-a-ja", pronunciation: "sa-a-ja" },
+            ex4: { korean: "차카타", english: "cha-ka-ta", pronunciation: "cha-ka-ta" },
+          },
+          tip: "If you can read these smoothly, you have mastered Hangul basics!",
+          image: "/lesson/hangeul_review.png",
+          createdAt: new Date(),
+        },
       ];
 
       // 2. 코스 생성
-      const shoppingCourseRef = await addDoc(collection(db, 'courses'), {
-        title: 'Shopping in Korea',
-        description: 'Learn essential Korean expressions for shopping and bargaining.',
-        level: 'Beginner',
-        category: 'shopping',
-        duration: '4 hours',
-        lessonsCount: shoppingLessons.length,
-        image: '/course/shopping.png',
+      const courseRef = await addDoc(collection(db, "courses"), {
+        title: "Korean Alphabet (Hangul) Basics",
+        description:
+          "This course introduces Hangul, the Korean alphabet. You will learn the basic consonants and vowels, how to pronounce them, and how to read simple syllables. Designed for complete beginners.",
+        level: "Beginner",
+        category: "Alphabet",
+        duration: "5 hours",
+        lessonsCount: courseLessons.length,
+        image: "/course/hangeul_basics.png",
         progress: 0,
         createdAt: new Date(),
       });
 
       // 3. lessons 서브컬렉션에 추가
-      for (const lesson of shoppingLessons) {
-        await setDoc(doc(collection(shoppingCourseRef, 'lessons'), lesson.id), lesson);
+      for (const lesson of courseLessons) {
+        await setDoc(doc(collection(courseRef, "lessons"), lesson.id), lesson);
       }
 
       setMessage('데이터 업로드 완료!');

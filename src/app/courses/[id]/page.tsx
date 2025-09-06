@@ -261,7 +261,7 @@ export default function CourseDetailPage({ params }: { params: Promise<{ id: str
                                                 <p className="text-blue-700 mt-1">{currentLesson.tip}</p>
                                             </div>
                                         )}
-                                        {hasEnoughExamplesForQuiz && !courseProgress?.isCompleted && (
+                                        {hasEnoughExamplesForQuiz && (
                                             <div className="mt-8 border-t pt-6 text-center">
                                                 <h3 className="text-xl font-bold text-gray-800">Ready to test your knowledge?</h3>
                                                 <p className="text-gray-600 my-2">Take a short quiz based on the examples in this course.</p>

@@ -6,22 +6,22 @@ export default function Home() {
       {/* Hero Section */}
       <section className="bg-gradient-to-r from-blue-600 to-purple-600 text-white py-20">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <h1 className="text-4xl md:text-6xl font-bold mb-6">
+          <h1 className=" text-4xl md:text-6xl font-bold mb-6">
             Learn Korean Easily and Fun
           </h1>
           <p className="text-xl md:text-2xl mb-8 text-blue-100">
             Improve your Korean skills through systematic curriculum and practice
           </p>
-          <div className="space-x-4">
+          <div className="md:space-x-4">
             <Link 
               href="/courses" 
-              className="bg-white text-blue-600 px-8 py-3 rounded-lg text-lg font-semibold hover:bg-gray-100 transition-colors"
+              className="block mb-4 md:mb-0 md:inline bg-white text-blue-600 px-8 py-3 rounded-lg text-lg font-semibold hover:bg-gray-100 transition-colors"
             >
               Start Learning
             </Link>
             <Link 
               href="/signup" 
-              className="border-2 border-white text-white px-8 py-3 rounded-lg text-lg font-semibold hover:bg-white hover:text-blue-600 transition-colors"
+              className="block md:inline border-2 border-white text-white px-8 py-3 rounded-lg text-lg font-semibold hover:bg-white hover:text-blue-600 transition-colors"
             >
               Sign Up Free
             </Link>

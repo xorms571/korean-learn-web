@@ -5,7 +5,6 @@ import Link from 'next/link';
 import { collection, getDocs } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import Loading from '@/components/Loading';
-import Image from 'next/image';
 import { useAuth } from '@/hooks/useAuth';
 import { useRouter } from 'next/navigation';
 
@@ -27,6 +26,7 @@ export default function CoursesPage() {
   const [courseLoading, setCourseLoading] = useState(true);
   const [selectedLevel, setSelectedLevel] = useState('all');
   const [selectedCategory, setSelectedCategory] = useState('all');
+  const [courseImageUrls, setCourseImageUrls] = useState<Record<string, string>>({});  
   const router = useRouter();
 
   useEffect(() => {
@@ -55,6 +55,40 @@ export default function CoursesPage() {
     fetchCourses();
   }, [user, loading, router]);
 
+  useEffect(() => {
+  const fetchImages = async () => {
+    const imageUrls: Record<string, string> = {};
+    await Promise.all(
+      courses.map(async (course) => {
+        try {
+          const response = await fetch(
+            `/api/pexels?query=${encodeURIComponent(course.title)}`
+          );
+
+          if (response.ok) {
+            const data = await response.json();
+            if (data.imageUrl) {
+              imageUrls[course.id] = data.imageUrl;
+            }
+          } else {
+            console.error(
+              `Failed to fetch image for "${course.title}":`,
+              response.statusText
+            );
+          }
+        } catch (error) {
+          console.error(`Error fetching image for "${course.title}":`, error);
+        }
+      })
+    );
+
+    setCourseImageUrls(imageUrls);
+  };
+
+  if (courses.length > 0) {
+    fetchImages();
+  }
+}, [courses]);
 
   const levels = [
     { value: 'all', label: 'All Levels' },
@@ -68,7 +102,9 @@ export default function CoursesPage() {
     { value: 'conversation', label: 'Conversation' },
     { value: 'grammar', label: 'Grammar' },
     { value: 'travel', label: 'Travel' },
-    { value: 'business', label: 'Business' }
+    { value: 'business', label: 'Business' },
+    { value: 'Food', label: 'Food' },
+    { value: 'shopping', label: 'Shopping' }
   ];
 
   const filteredCourses = courses.filter(course => {
@@ -92,6 +128,8 @@ export default function CoursesPage() {
       case 'grammar': return 'Grammar';
       case 'travel': return 'Travel';
       case 'business': return 'Business';
+      case 'Food': return 'Food';
+      case 'shopping': return 'Shopping';
       default: return category;
     }
   };
@@ -157,7 +195,7 @@ export default function CoursesPage() {
             <div key={course.id} className="bg-white rounded-lg shadow overflow-hidden hover:shadow-lg transition-shadow">
               {/* Course Image */}
               <div className="h-48 bg-gray-200 flex items-center justify-center">
-                {course.image ? <Image width={384} height={192} src={course.image} alt={course.title} className='w-full h-full object-cover' /> :
+                {course.image ? <img src={courseImageUrls[course.id]} alt={course.title} className='w-full h-full object-cover' /> :
                   <div className="text-gray-500 text-center">
                     <svg className="w-16 h-16 mx-auto mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.246 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />

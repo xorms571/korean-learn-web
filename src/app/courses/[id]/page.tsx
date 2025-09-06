@@ -90,17 +90,17 @@ export default function CourseDetailPage({ params }: { params: Promise<{ id: str
                 for (const key in currentLesson.exampleSentences) {
                     const sentence = currentLesson.exampleSentences[key];
                     try {
-                        const response = await fetch(`/api/unsplash?query=${encodeURIComponent(sentence.korean)}`);
+                        const response = await fetch(`/api/pexels?query=${encodeURIComponent(sentence.english)}`);
                         if (response.ok) {
                             const data = await response.json();
                             if (data.imageUrl) {
                                 newImageUrls[key] = data.imageUrl;
                             }
                         } else {
-                            console.error(`Failed to fetch image for "${sentence.korean}":`, response.statusText);
+                            console.error(`Failed to fetch image for "${sentence.english}":`, response.statusText);
                         }
                     } catch (error) {
-                        console.error(`Error fetching image for "${sentence.korean}":`, error);
+                        console.error(`Error fetching image for "${sentence.english}":`, error);
                     }
                 }
                 setExampleImageUrls(newImageUrls);
@@ -135,7 +135,7 @@ export default function CourseDetailPage({ params }: { params: Promise<{ id: str
 
     return (
         <div className="bg-gray-50 min-h-screen">
-            <div className="container mx-auto px-4 py-8">
+            <div className="container mx-auto px-4 lg:px-8 py-8 max-w-7xl">
                 {/* Header */}
                 <header className="mb-8">
                     <h1 className="text-4xl font-bold text-gray-800 mb-2">{course.title}</h1>

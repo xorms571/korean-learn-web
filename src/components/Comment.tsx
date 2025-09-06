@@ -1,7 +1,7 @@
-"use client";
+'use client';
 
-import { useEffect, useState } from "react";
-import { db } from "@/lib/firebase";
+import { useEffect, useState } from 'react';
+import { db } from '@/lib/firebase';
 import {
     collection,
     addDoc,
@@ -12,11 +12,12 @@ import {
     doc,
     updateDoc,
     deleteDoc,
-} from "firebase/firestore";
-import { useAuth } from "@/hooks/useAuth";
-import { useRouter } from "next/navigation";
+} from 'firebase/firestore';
+import { useAuth } from '@/hooks/useAuth';
+import { useRouter } from 'next/navigation';
+import { FiSend, FiX, FiEdit, FiTrash2, FiCornerDownRight } from 'react-icons/fi';
 
-interface Comment {
+interface CommentData {
     id: string;
     userId: string;
     displayName: string;
@@ -26,43 +27,139 @@ interface Comment {
     parentId: string | null;
 }
 
-export default function Comment({
-    courseId,
-    lessonId,
+const CommentItem = ({
+    comment,
+    onReply,
+    onEdit,
+    onDelete,
+    onSave,
+    onCancelEdit,
+    isEditing,
+    editText,
+    setEditText,
+    currentUser,
+    replies,
 }: {
-    courseId: string;
-    lessonId: string;
-}) {
+    comment: CommentData;
+    onReply: (id: string) => void;
+    onEdit: (id: string, text: string) => void;
+    onDelete: (id: string) => void;
+    onSave: (id: string) => void;
+    onCancelEdit: () => void;
+    isEditing: boolean;
+    editText: string;
+    setEditText: (text: string) => void;
+    currentUser: any;
+    replies: CommentData[];
+}) => {
+    return (
+        <div className="flex items-start gap-3">
+            <img
+                src={comment.photoURL || '/default-profile.png'}
+                alt={comment.displayName}
+                className="rounded-full w-10 h-10 mt-1"
+            />
+            <div className="flex-1">
+                <div className="bg-gray-100 rounded-lg p-3">
+                    <div className="flex items-center justify-between">
+                        <span className="font-semibold text-gray-800">{comment.displayName}</span>
+                        <span className="text-xs text-gray-500">
+                            {comment.createdAt?.toDate ? comment.createdAt.toDate().toLocaleString() : 'Loading...'}
+                        </span>
+                    </div>
+                    {isEditing ? (
+                        <div className="mt-2">
+                            <textarea
+                                value={editText}
+                                onChange={(e) => setEditText(e.target.value)}
+                                className="w-full border rounded-md px-3 py-2 text-sm"
+                                rows={2}
+                            />
+                            <div className="flex gap-2 mt-2">
+                                <button onClick={() => onSave(comment.id)} className="px-3 py-1 bg-blue-600 text-white rounded-md text-xs font-semibold hover:bg-blue-700">Save</button>
+                                <button onClick={onCancelEdit} className="px-3 py-1 bg-gray-200 rounded-md text-xs font-semibold hover:bg-gray-300">Cancel</button>
+                            </div>
+                        </div>
+                    ) : (
+                        <p className="text-gray-700 mt-1">{comment.text}</p>
+                    )}
+                </div>
+                <div className="flex items-center gap-4 mt-1 text-xs text-gray-500">
+                    <button onClick={() => onReply(comment.id)} className="font-semibold hover:text-blue-600">Reply</button>
+                    {currentUser?.uid === comment.userId && (
+                        <>
+                            <button onClick={() => onEdit(comment.id, comment.text)} className="font-semibold hover:text-green-600">Edit</button>
+                            <button onClick={() => onDelete(comment.id)} className="font-semibold hover:text-red-600">Delete</button>
+                        </>
+                    )}
+                </div>
+
+                {/* Replies */}
+                <div className="mt-3 space-y-3">
+                    {replies.map(reply => (
+                        <div key={reply.id} className="flex items-start gap-3">
+                            <FiCornerDownRight className="text-gray-400 mt-2" />
+                            <img
+                                src={reply.photoURL || '/default-profile.png'}
+                                alt={reply.displayName}
+                                className="rounded-full w-8 h-8 mt-1"
+                            />
+                            <div className="flex-1">
+                                <div className="bg-gray-50 rounded-lg p-2">
+                                    <div className="flex items-center justify-between">
+                                        <span className="font-semibold text-gray-800 text-sm">{reply.displayName}</span>
+                                        <span className="text-xs text-gray-500">
+                                            {reply.createdAt?.toDate ? reply.createdAt.toDate().toLocaleString() : 'Loading...'}
+                                        </span>
+                                    </div>
+                                    {isEditing && comment.id === reply.id ? (
+                                        <div className="mt-2">
+                                            <textarea
+                                                value={editText}
+                                                onChange={(e) => setEditText(e.target.value)}
+                                                className="w-full border rounded-md px-3 py-2 text-sm"
+                                                rows={2}
+                                            />
+                                            <div className="flex gap-2 mt-2">
+                                                <button onClick={() => onSave(reply.id)} className="px-3 py-1 bg-blue-600 text-white rounded-md text-xs font-semibold hover:bg-blue-700">Save</button>
+                                                <button onClick={onCancelEdit} className="px-3 py-1 bg-gray-200 rounded-md text-xs font-semibold hover:bg-gray-300">Cancel</button>
+                                            </div>
+                                        </div>
+                                    ) : (
+                                        <p className="text-gray-700 mt-1 text-sm">{reply.text}</p>
+                                    )}
+                                </div>
+                                {currentUser?.uid === reply.userId && !isEditing && (
+                                    <div className="flex items-center gap-4 mt-1 text-xs text-gray-500">
+                                        <button onClick={() => onEdit(reply.id, reply.text)} className="font-semibold hover:text-green-600">Edit</button>
+                                        <button onClick={() => onDelete(reply.id)} className="font-semibold hover:text-red-600">Delete</button>
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+                    ))}
+                </div>
+            </div>
+        </div>
+    );
+};
+
+export default function Comment({ courseId, lessonId }: { courseId: string; lessonId: string; }) {
     const { user } = useAuth();
-    const [comments, setComments] = useState<Comment[]>([]);
-    const [newComment, setNewComment] = useState("");
+    const [comments, setComments] = useState<CommentData[]>([]);
+    const [newComment, setNewComment] = useState('');
     const [replyTo, setReplyTo] = useState<string | null>(null);
     const [editingId, setEditingId] = useState<string | null>(null);
-    const [editText, setEditText] = useState("");
+    const [editText, setEditText] = useState('');
     const router = useRouter();
 
     useEffect(() => {
-        const commentsRef = collection(
-            db,
-            "courses",
-            courseId,
-            "lessons",
-            lessonId,
-            "comments"
-        );
-
-        const q = query(commentsRef, orderBy("createdAt", "asc"));
+        const commentsRef = collection(db, 'courses', courseId, 'lessons', lessonId, 'comments');
+        const q = query(commentsRef, orderBy('createdAt', 'asc'));
         const unsubscribe = onSnapshot(q, (snapshot) => {
-            const data = snapshot.docs.map(
-                (doc) =>
-                ({
-                    id: doc.id,
-                    ...doc.data(),
-                } as Comment)
-            );
+            const data = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as CommentData));
             setComments(data);
         });
-
         return () => unsubscribe();
     }, [courseId, lessonId]);
 
@@ -70,210 +167,96 @@ export default function Comment({
         e.preventDefault();
         if (!newComment.trim()) return;
         if (!user) {
-            router.push("/login");
+            router.push('/login');
             return;
         }
 
-        const commentsRef = collection(
-            db,
-            "courses",
-            courseId,
-            "lessons",
-            lessonId,
-            "comments"
-        );
-
+        const commentsRef = collection(db, 'courses', courseId, 'lessons', lessonId, 'comments');
         await addDoc(commentsRef, {
             userId: user.uid,
-            displayName: user.displayName || "Anonymous",
-            photoURL: user.photoURL || "/default-profile.png",
+            displayName: user.displayName || 'Anonymous',
+            photoURL: user.photoURL || '/default-profile.png',
             text: newComment,
             createdAt: serverTimestamp(),
             parentId: replyTo,
         });
 
-        setNewComment("");
+        setNewComment('');
         setReplyTo(null);
     };
 
     const handleEdit = async (commentId: string) => {
         if (!editText.trim()) return;
-        const commentRef = doc(
-            db,
-            "courses",
-            courseId,
-            "lessons",
-            lessonId,
-            "comments",
-            commentId
-        );
+        const commentRef = doc(db, 'courses', courseId, 'lessons', lessonId, 'comments', commentId);
         await updateDoc(commentRef, { text: editText });
         setEditingId(null);
-        setEditText("");
+        setEditText('');
     };
 
     const handleDelete = async (commentId: string) => {
-        const commentRef = doc(
-            db,
-            "courses",
-            courseId,
-            "lessons",
-            lessonId,
-            "comments",
-            commentId
-        );
+        const commentRef = doc(db, 'courses', courseId, 'lessons', lessonId, 'comments', commentId);
         await deleteDoc(commentRef);
     };
 
-    const rootComments = comments.filter((c) => !c.parentId);
-    const getReplies = (parentId: string) =>
-        comments.filter((c) => c.parentId === parentId);
+    const rootComments = comments.filter(c => !c.parentId);
+    const getReplies = (parentId: string) => comments.filter(c => c.parentId === parentId);
 
     return (
-        <div className="max-w-7xl mx-auto p-8 text-gray-700">
-            <h3 className="font-semibold mb-2">Comments</h3>
+        <div className="bg-white rounded-lg shadow-md p-6">
+            <h3 className="text-xl font-bold text-gray-800 mb-4">Comments ({comments.length})</h3>
 
-            <form onSubmit={handleSubmit} className="flex gap-2 mb-4">
-                <input
-                    type="text"
-                    placeholder={
-                        replyTo ? "Write a reply..." : "Add a comment..."
-                    }
-                    value={newComment}
-                    onChange={(e) => setNewComment(e.target.value)}
-                    className="flex-1 border rounded px-3 py-2"
-                />
-                <button
-                    type="submit"
-                    className="px-4 py-2 bg-blue-600 text-white rounded"
-                >
-                    {replyTo ? "Reply" : "Post"}
-                </button>
-                {replyTo && (
-                    <button
-                        type="button"
-                        onClick={() => setReplyTo(null)}
-                        className="px-3 py-2 bg-gray-300 rounded"
-                    >
-                        Cancel
-                    </button>
+            {/* Comment Input Form */}
+            <form onSubmit={handleSubmit} className="flex items-start gap-3 mb-6">
+                {user && (
+                    <img
+                        src={user.photoURL || '/default-profile.png'}
+                        alt={user.displayName || 'User'}
+                        className="rounded-full w-10 h-10 mt-1"
+                    />
                 )}
+                <div className="flex-1">
+                    <textarea
+                        placeholder={replyTo ? 'Write a reply...' : 'Add a comment...'}
+                        value={newComment}
+                        onChange={(e) => setNewComment(e.target.value)}
+                        className="w-full border rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 transition"
+                        rows={replyTo ? 2 : 3}
+                    />
+                    <div className="flex items-center justify-end gap-2 mt-2">
+                        {replyTo && (
+                            <button type="button" onClick={() => setReplyTo(null)} className="flex items-center gap-1 px-3 py-2 bg-gray-200 rounded-md text-sm font-semibold hover:bg-gray-300">
+                                <FiX /> Cancel
+                            </button>
+                        )}
+                        <button type="submit" className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-md font-semibold hover:bg-blue-700 transition-colors disabled:opacity-50" disabled={!newComment.trim()}>
+                            {replyTo ? 'Reply' : 'Post Comment'} <FiSend />
+                        </button>
+                    </div>
+                </div>
             </form>
 
-            <ul className="space-y-4">
-                {rootComments.map((c) => (
-                    <li key={c.id} className="border rounded p-3 bg-gray-50">
-                        <div className="flex items-center gap-2 mb-1">
-                            <img
-                                src={c.photoURL || "/default-profile.png"}
-                                alt={c.displayName}
-                                className="rounded-full w-8 h-8"
-                            />
-                            <span className="font-medium">{c.displayName}</span>
-                            <span className="text-xs text-gray-400 ml-auto">
-                                {c.createdAt?.toDate
-                                    ? c.createdAt.toDate().toLocaleString()
-                                    : "Loading..."}
-                            </span>
-                        </div>
-
-                        {editingId === c.id ? (
-                            <div className="flex gap-2 mt-2">
-                                <input
-                                    value={editText}
-                                    onChange={(e) => setEditText(e.target.value)}
-                                    className="flex-1 border rounded px-2 py-1"
-                                />
-                                <button
-                                    onClick={() => handleEdit(c.id)}
-                                    className="px-3 py-1 bg-blue-600 text-white rounded"
-                                >
-                                    Save
-                                </button>
-                                <button
-                                    onClick={() => setEditingId(null)}
-                                    className="px-3 py-1 bg-gray-300 rounded"
-                                >
-                                    Cancel
-                                </button>
-                            </div>
-                        ) : (
-                            <p className="ml-10">{c.text}</p>
-                        )}
-
-                        <div className="flex gap-2 mt-2 text-sm ml-10">
-                            <button
-                                onClick={() => setReplyTo(c.id)}
-                                className="text-blue-600"
-                            >
-                                Reply
-                            </button>
-                            {user?.uid === c.userId && (
-                                <>
-                                    <button
-                                        onClick={() => {
-                                            setEditingId(c.id);
-                                            setEditText(c.text);
-                                        }}
-                                        className="text-green-600"
-                                    >
-                                        Edit
-                                    </button>
-                                    <button
-                                        onClick={() => handleDelete(c.id)}
-                                        className="text-red-600"
-                                    >
-                                        Delete
-                                    </button>
-                                </>
-                            )}
-                        </div>
-
-                        <ul className="ml-12 mt-2 space-y-2">
-                            {getReplies(c.id).map((reply) => (
-                                <li
-                                    key={reply.id}
-                                    className="border rounded p-2 bg-gray-100"
-                                >
-                                    <div className="flex items-center gap-2 mb-1">
-                                        <img
-                                            src={reply.photoURL || "/default-profile.png"}
-                                            alt={reply.displayName}
-                                            className="rounded-full w-8 h-8"
-                                        />
-                                        <span className="font-medium">{reply.displayName}</span>
-                                        <span className="text-xs text-gray-400 ml-auto">
-                                            {reply.createdAt?.toDate
-                                                ? reply.createdAt.toDate().toLocaleString()
-                                                : "Loading..."}
-                                        </span>
-                                    </div>
-                                    <p className="ml-8">{reply.text}</p>
-                                    {user?.uid === reply.userId && (
-                                        <div className="flex gap-2 mt-1 ml-8 text-xs">
-                                            <button
-                                                onClick={() => {
-                                                    setEditingId(reply.id);
-                                                    setEditText(reply.text);
-                                                }}
-                                                className="text-green-600"
-                                            >
-                                                Edit
-                                            </button>
-                                            <button
-                                                onClick={() => handleDelete(reply.id)}
-                                                className="text-red-600"
-                                            >
-                                                Delete
-                                            </button>
-                                        </div>
-                                    )}
-                                </li>
-                            ))}
-                        </ul>
-                    </li>
+            {/* Comments List */}
+            <div className="space-y-6">
+                {rootComments.map(c => (
+                    <CommentItem
+                        key={c.id}
+                        comment={c}
+                        replies={getReplies(c.id)}
+                        onReply={setReplyTo}
+                        onEdit={(id, text) => {
+                            setEditingId(id);
+                            setEditText(text);
+                        }}
+                        onDelete={handleDelete}
+                        onSave={handleEdit}
+                        onCancelEdit={() => setEditingId(null)}
+                        isEditing={editingId === c.id}
+                        editText={editText}
+                        setEditText={setEditText}
+                        currentUser={user}
+                    />
                 ))}
-            </ul>
+            </div>
         </div>
     );
 }

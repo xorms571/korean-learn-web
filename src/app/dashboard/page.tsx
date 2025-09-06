@@ -11,7 +11,7 @@ import { FiAward } from 'react-icons/fi';
 
 // --- Helper Functions ---
 const formatStudyTime = (totalSeconds: number): string => {
-    if (!totalSeconds) return '0m';
+    if (!totalSeconds || totalSeconds < 60) return '0m';
     const hours = Math.floor(totalSeconds / 3600);
     const minutes = Math.floor((totalSeconds % 3600) / 60);
     if (hours > 0) {

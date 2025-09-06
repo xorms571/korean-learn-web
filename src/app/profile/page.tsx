@@ -4,6 +4,18 @@ import { useState } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { useRouter } from 'next/navigation';
 import { useEffect } from 'react';
+import Loading from '@/components/Loading';
+
+// --- Helper Functions ---
+const formatStudyTime = (totalSeconds: number): string => {
+    if (!totalSeconds || totalSeconds < 60) return '0m';
+    const hours = Math.floor(totalSeconds / 3600);
+    const minutes = Math.floor((totalSeconds % 3600) / 60);
+    if (hours > 0) {
+        return `${hours}h ${minutes}m`;
+    }
+    return `${minutes}m`;
+};
 
 export default function ProfilePage() {
   const [activeTab, setActiveTab] = useState('profile');
@@ -17,36 +29,12 @@ export default function ProfilePage() {
   }, [user, loading, router]);
 
   if (loading) {
-    return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
-          <p className="mt-4 text-gray-600">Loading...</p>
-        </div>
-      </div>
-    );
+    return <Loading />;
   }
 
-  if (!user) {
-    return null;
+  if (!user || !userProfile) {
+    return null; // or a loading/error state
   }
-
-  // Use actual user data if available, otherwise show empty state
-  const currentUserProfile = userProfile || {
-    displayName: 'Learner',
-    email: user.email || '',
-    photoURL: '',
-    currentLevel: 'Beginner 1',
-    totalLessons: 0,
-    completedLessons: 0,
-    streak: 0,
-    totalStudyTime: '0h 0m',
-    joinDate: new Date().toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric'
-    })
-  };
 
   return (
     <div className="min-h-screen bg-gray-50 py-8">
@@ -55,10 +43,10 @@ export default function ProfilePage() {
         <div className="bg-white rounded-lg shadow mb-8">
           <div className="p-8 text-center">
             <div className="mb-6">
-              {currentUserProfile.photoURL ? (
+              {userProfile.photoURL ? (
                 <img 
-                  src={currentUserProfile.photoURL} 
-                  alt={currentUserProfile.displayName}
+                  src={userProfile.photoURL} 
+                  alt={userProfile.displayName}
                   className="w-24 h-24 rounded-full mx-auto border-4 border-blue-100"
                 />
               ) : (
@@ -69,11 +57,11 @@ export default function ProfilePage() {
                 </div>
               )}
             </div>
-            <h1 className="text-3xl font-bold text-gray-900 mb-2">{currentUserProfile.displayName}</h1>
-            <p className="text-gray-600 mb-4">{currentUserProfile.email}</p>
+            <h1 className="text-3xl font-bold text-gray-900 mb-2">{userProfile.displayName}</h1>
+            <p className="text-gray-600 mb-4">{userProfile.email}</p>
             <div className="flex justify-center space-x-6 text-sm text-gray-500">
-              <span>Member since {currentUserProfile.joinDate}</span>
-              <span>Level {currentUserProfile.currentLevel}</span>
+              <span>Member since {userProfile.joinDate}</span>
+              <span>Level {userProfile.currentLevel}</span>
             </div>
           </div>
         </div>
@@ -113,7 +101,7 @@ export default function ProfilePage() {
                     <label className="block text-sm font-medium text-gray-700 mb-2">Display Name</label>
                     <input
                       type="text"
-                      value={currentUserProfile.displayName}
+                      defaultValue={userProfile.displayName}
                       className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                       placeholder="Enter your display name"
                     />
@@ -122,7 +110,7 @@ export default function ProfilePage() {
                     <label className="block text-sm font-medium text-gray-700 mb-2">Email</label>
                     <input
                       type="email"
-                      value={currentUserProfile.email}
+                      value={userProfile.email}
                       disabled
                       className="w-full px-3 py-2 border border-gray-300 rounded-md bg-gray-50 text-gray-500"
                     />
@@ -141,20 +129,20 @@ export default function ProfilePage() {
               <div className="space-y-6">
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                   <div className="bg-blue-50 rounded-lg p-6 text-center">
-                    <div className="text-2xl font-bold text-blue-600 mb-2">{currentUserProfile.completedLessons}</div>
+                    <div className="text-2xl font-bold text-blue-600 mb-2">{userProfile.completedLessons}</div>
                     <div className="text-sm text-blue-600">Lessons Completed</div>
                   </div>
                   <div className="bg-green-50 rounded-lg p-6 text-center">
-                    <div className="text-2xl font-bold text-green-600 mb-2">{currentUserProfile.streak}</div>
+                    <div className="text-2xl font-bold text-green-600 mb-2">{userProfile.streak || 0}</div>
                     <div className="text-sm text-green-600">Day Streak</div>
                   </div>
                   <div className="bg-purple-50 rounded-lg p-6 text-center">
-                    <div className="text-2xl font-bold text-purple-600 mb-2">{currentUserProfile.totalStudyTime}</div>
+                    <div className="text-2xl font-bold text-purple-600 mb-2">{formatStudyTime(userProfile.totalStudySeconds)}</div>
                     <div className="text-sm text-purple-600">Total Study Time</div>
                   </div>
                 </div>
                 
-                {currentUserProfile.completedLessons === 0 ? (
+                {userProfile.completedLessons === 0 ? (
                   <div className="text-center py-8">
                     <div className="text-gray-400 mb-4">
                       <svg className="w-16 h-16 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">

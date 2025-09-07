@@ -176,6 +176,12 @@ export default function CourseDetailPage({ params }: { params: Promise<{ id: str
         if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
             const utterance = new SpeechSynthesisUtterance(text);
             utterance.lang = 'ko-KR';
+            const voices = speechSynthesis.getVoices();
+            const koreanVoice = voices.find(voice => voice.lang === 'ko-KR');
+            if (koreanVoice) {
+                utterance.voice = koreanVoice;
+            }
+            speechSynthesis.cancel();
             speechSynthesis.speak(utterance);
         } else {
             alert('Your browser does not support Web Speech API.');

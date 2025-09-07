@@ -151,25 +151,26 @@ export default function CoursesPage() {
     { value: 'grammar', label: 'Grammar' },
     { value: 'travel', label: 'Travel' },
     { value: 'business', label: 'Business' },
-    { value: 'Food', label: 'Food' },
+    { value: 'food', label: 'Food' },
     { value: 'shopping', label: 'Shopping' },
-    { value: 'Alphabet', label: 'Alphabet' }
+    { value: 'alphabet', label: 'Alphabet' },
+    { value: 'numbers', label: 'Numbers' }
   ];
 
   const filteredCourses = coursesWithProgress.filter(course => {
-    if (selectedLevel !== 'all' && course.level !== selectedLevel) return false;
-    if (selectedCategory !== 'all' && course.category !== selectedCategory) return false;
+    if (selectedLevel !== 'all' && course.level.toLowerCase() !== selectedLevel) return false;
+    if (selectedCategory !== 'all' && course.category.toLowerCase() !== selectedCategory) return false;
     return true;
   });
 
-  const getLevelLabel = (level: string) => levels.find(l => l.value === level)?.label || level;
-  const getCategoryLabel = (category: string) => categories.find(c => c.value === category)?.label || category;
+  const getLevelLabel = (level: string) => levels.find(l => l.value === level.toLowerCase())?.label || level;
+  const getCategoryLabel = (category: string) => categories.find(c => c.value === category.toLowerCase())?.label || category;
 
   if (/* authLoading || */ courseLoading) return <Loading />;
   //if (!user) return <Loading />;
 
   return (
-    <div className="bg-gray-50 py-8">
+    <div className="min-h-screen bg-gray-50 py-8">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="md:text-center mb-12">
           <h1 className="text-4xl font-bold text-gray-900 mb-4">Korean Courses</h1>

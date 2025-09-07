@@ -17,7 +17,7 @@ export default function PostCard({ post }: PostCardProps) {
             <p className="text-xs text-gray-500">{new Date(post.createdAt?.toDate()).toLocaleString()}</p>
           </div>
         </div>
-        <h3 className="font-bold text-lg text-gray-900 mb-1">{post.title}</h3>
+        <h3 className="font-bold text-lg text-gray-900 mb-1 truncate">{post.title}</h3>
         <p className="text-gray-700 text-sm mb-3 truncate">{post.content}</p>
         <div className="flex items-center text-xs text-gray-500">
           <span className="inline-block bg-blue-100 text-blue-700 px-2 py-1 rounded-full text-xs font-medium mr-2">

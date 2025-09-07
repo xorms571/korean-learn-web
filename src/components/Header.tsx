@@ -77,7 +77,7 @@ export default function Header() {
           </div>
 
           {/* Mobile menu button */}
-          <div className="md:hidden">
+          <div className="flex justify-center items-center md:hidden">
             <button
               onClick={() => setIsMenuOpen(!isMenuOpen)}
               className="text-gray-700 hover:text-blue-600 focus:outline-none focus:text-blue-600"
@@ -96,22 +96,20 @@ export default function Header() {
         {/* Mobile Navigation */}
         {isMenuOpen && (
           <div className="md:hidden">
-            <div className="px-2 pt-2 pb-3 space-y-1 sm:px-3">
-              <Link href="/courses" className="text-gray-700 hover:text-blue-600 block px-3 py-2 rounded-md text-base font-medium">
+            <div className="pt-2 pb-3 space-y-1 md:px-2">
+              <Link href="/courses" className="text-gray-700 hover:text-blue-600 block md:px-3 py-2 rounded-md text-base font-medium">
                 Courses
               </Link>
-              <Link href="/community" className="text-gray-700 hover:text-blue-600 block px-3 py-2 rounded-md text-base font-medium">
+              <Link href="/community" className="text-gray-700 hover:text-blue-600 block md:px-3 py-2 rounded-md text-base font-medium">
                 Community
               </Link>
-              {user && (
-                <Link href="/dashboard" className="text-gray-700 hover:text-blue-600 block px-3 py-2 rounded-md text-base font-medium">
-                  Dashboard
-                </Link>
-              )}
-              <div className="pt-4 pb-3 border-t border-gray-200">
+              <Link href="/dashboard" className="text-gray-700 hover:text-blue-600 block md:px-3 py-2 rounded-md text-base font-medium">
+                Dashboard
+              </Link>
+              <div className="pt-2 pb-3 border-t border-gray-200">
                 {user ? (
                   <>
-                    <Link href="/profile" className="flex items-center space-x-2 text-gray-700 hover:text-blue-600 block px-3 py-2 rounded-md text-base font-medium">
+                    <Link href="/profile" className="flex items-center space-x-2 text-gray-700 hover:text-blue-600 md:px-3 py-2 rounded-md text-base font-medium">
                       {userProfile?.photoURL ? (
                         <img
                           src={userProfile.photoURL}
@@ -129,17 +127,17 @@ export default function Header() {
                     </Link>
                     <button
                       onClick={handleLogout}
-                      className="text-gray-700 hover:text-blue-600 block w-full text-left px-3 py-2 rounded-md text-base font-medium"
+                      className="text-gray-700 hover:text-blue-600 block w-full text-left md:px-3 py-2 rounded-md text-base font-medium"
                     >
                       Logout
                     </button>
                   </>
                 ) : (
                   <>
-                    <Link href="/login" className="text-gray-700 hover:text-blue-600 block px-3 py-2 rounded-md text-base font-medium">
+                    <Link href="/login" className="text-gray-700 hover:text-blue-600 block md:px-3 py-2 rounded-md text-base font-medium">
                       Login
                     </Link>
-                    <Link href="/signup" className="text-gray-700 hover:text-blue-600 block px-3 py-2 rounded-md text-base font-medium">
+                    <Link href="/signup" className="text-gray-700 hover:text-blue-600 block md:px-3 py-2 rounded-md text-base font-medium">
                       Sign Up
                     </Link>
                   </>

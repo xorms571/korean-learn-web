@@ -232,7 +232,7 @@ export default function CourseDetailPage({ params }: { params: Promise<{ id: str
                         ) : (
                             <>
                                 {currentLesson ? (
-                                    <div className="bg-white rounded-lg md:shadow-md md:p-6">
+                                    <div className="md:bg-white rounded-lg md:shadow-md md:p-6">
                                         <div className="mb-6">
                                             <h2 className="text-3xl font-bold text-gray-800">Lesson {currentLesson.lessonNumber}: {currentLesson.title}</h2>
                                             <p className="text-gray-600 mt-1">{currentLesson.content}</p>

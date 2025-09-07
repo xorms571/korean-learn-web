@@ -171,12 +171,12 @@ export default function CoursesPage() {
   return (
     <div className="bg-gray-50 py-8">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="text-center mb-12">
+        <div className="md:text-center mb-12">
           <h1 className="text-4xl font-bold text-gray-900 mb-4">Korean Courses</h1>
           <p className="text-xl text-gray-600">Improve your Korean skills with systematically structured learning courses</p>
         </div>
 
-        <div className="bg-white rounded-lg shadow p-6 mb-8">
+        <div className="md:bg-white rounded-lg md:shadow md:p-6 mb-8">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">Select Level</label>

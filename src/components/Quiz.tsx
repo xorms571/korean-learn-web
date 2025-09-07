@@ -70,7 +70,7 @@ const generateQuiz = (lessons: Lesson[]): QuizQuestion[] => {
                 questionText: example.english,
                 options,
                 correctAnswer,
-                prompt: "Select the correct Korean sentence.",
+                prompt: "Select the correct Korean sentence/word.",
             };
         }
     });

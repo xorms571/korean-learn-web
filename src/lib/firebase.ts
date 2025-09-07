@@ -12,7 +12,8 @@ import {
   getDoc,
   updateDoc,
   arrayUnion,
-  arrayRemove
+  arrayRemove,
+  deleteDoc
 } from 'firebase/firestore';
 import { getStorage } from 'firebase/storage';
 import { Post } from '@/types/post';
@@ -107,6 +108,16 @@ export const toggleLike = async (postId: string, userId: string) => {
       });
     }
   }
+};
+
+export const deletePost = async (postId: string) => {
+  const postRef = doc(db, 'posts', postId);
+  await deleteDoc(postRef);
+};
+
+export const updatePost = async (postId: string, data: Partial<Post>) => {
+  const postRef = doc(db, 'posts', postId);
+  await updateDoc(postRef, data);
 };
 
 export default app;

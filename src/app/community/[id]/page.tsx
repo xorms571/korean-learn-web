@@ -3,7 +3,7 @@
 import { use, useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/hooks/useAuth';
-import { getPost, toggleLike } from '@/lib/firebase';
+import { getPost, toggleLike, deletePost } from '@/lib/firebase';
 import { Post } from '@/types/post';
 import Loading from '@/components/Loading';
 import Comment from '@/components/Comment';
@@ -46,6 +46,19 @@ export default function PostDetailPage({ params }: { params: Promise<{ id: strin
     });
   };
 
+  const handleDelete = async () => {
+    if (!user || !post || user.uid !== post.authorId) return;
+    if (window.confirm('Are you sure you want to delete this post?')) {
+      try {
+        await deletePost(post.id);
+        router.push('/community');
+      } catch (error) {
+        console.error("Error deleting post: ", error);
+        alert("Failed to delete post.");
+      }
+    }
+  };
+
   if (loading || isLoadingPost /*|| !user*/) {
     return <Loading />;
   }
@@ -85,6 +98,22 @@ export default function PostDetailPage({ params }: { params: Promise<{ id: strin
               <FiHeart className={isLiked ? 'fill-current' : ''} />
               {post.likes.length} Likes
             </button>
+            {user && user.uid === post.authorId && (
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => router.push(`/community/edit/${post.id}`)}
+                  className="text-sm font-semibold text-blue-600 hover:text-blue-800"
+                >
+                  Edit
+                </button>
+                <button
+                  onClick={handleDelete}
+                  className="text-sm font-semibold text-red-600 hover:text-red-800"
+                >
+                  Delete
+                </button>
+              </div>
+            )}
           </div>
         </div>
 

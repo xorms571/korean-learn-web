@@ -32,11 +32,9 @@ export default function Header() {
             <Link href="/community" className="text-gray-700 hover:text-blue-600 px-3 py-2 rounded-md text-sm font-medium">
               Community
             </Link>
-            {user && (
-              <Link href="/dashboard" className="text-gray-700 hover:text-blue-600 px-3 py-2 rounded-md text-sm font-medium">
-                Dashboard
-              </Link>
-            )}
+            <Link href="/dashboard" className="text-gray-700 hover:text-blue-600 px-3 py-2 rounded-md text-sm font-medium">
+              Dashboard
+            </Link>
           </nav>
 
           {/* Auth Buttons / User Menu */}
@@ -45,8 +43,8 @@ export default function Header() {
               <div className="flex items-center space-x-4">
                 <Link href="/profile" className="flex items-center space-x-2 text-gray-700 hover:text-blue-600">
                   {userProfile?.photoURL ? (
-                    <img 
-                      src={userProfile.photoURL} 
+                    <img
+                      src={userProfile.photoURL}
                       alt={userProfile.displayName}
                       className="w-8 h-8 rounded-full"
                     />
@@ -115,8 +113,8 @@ export default function Header() {
                   <>
                     <Link href="/profile" className="flex items-center space-x-2 text-gray-700 hover:text-blue-600 block px-3 py-2 rounded-md text-base font-medium">
                       {userProfile?.photoURL ? (
-                        <img 
-                          src={userProfile.photoURL} 
+                        <img
+                          src={userProfile.photoURL}
                           alt={userProfile.displayName}
                           className="w-6 h-6 rounded-full"
                         />

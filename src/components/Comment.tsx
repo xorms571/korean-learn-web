@@ -15,7 +15,7 @@ import {
 } from 'firebase/firestore';
 import { useAuth } from '@/hooks/useAuth';
 import { useRouter } from 'next/navigation';
-import { FiSend, FiX, FiEdit, FiTrash2, FiCornerDownRight } from 'react-icons/fi';
+import { FiSend, FiX, FiCornerDownRight } from 'react-icons/fi';
 
 interface CommentData {
     id: string;
@@ -34,11 +34,12 @@ const CommentItem = ({
     onDelete,
     onSave,
     onCancelEdit,
-    isEditing,
+    isEditingThisComment,
     editText,
     setEditText,
     currentUser,
     replies,
+    editingId,
 }: {
     comment: CommentData;
     onReply: (id: string) => void;
@@ -46,11 +47,12 @@ const CommentItem = ({
     onDelete: (id: string) => void;
     onSave: (id: string) => void;
     onCancelEdit: () => void;
-    isEditing: boolean;
+    isEditingThisComment: boolean;
     editText: string;
     setEditText: (text: string) => void;
     currentUser: any;
     replies: CommentData[];
+    editingId: string | null;
 }) => {
     return (
         <div className="flex items-start gap-3">
@@ -67,7 +69,7 @@ const CommentItem = ({
                             {comment.createdAt?.toDate ? comment.createdAt.toDate().toLocaleString() : 'Loading...'}
                         </span>
                     </div>
-                    {isEditing ? (
+                    {isEditingThisComment ? (
                         <div className="mt-2">
                             <textarea
                                 value={editText}
@@ -84,12 +86,12 @@ const CommentItem = ({
                         <p className="text-gray-700 mt-1">{comment.text}</p>
                     )}
                 </div>
-                <div className="flex items-center gap-4 mt-1 text-xs text-gray-500">
-                    <button onClick={() => onReply(comment.id)} className="font-semibold hover:text-blue-600">Reply</button>
+                <div className="flex items-center gap-2 mt-2 text-xs text-gray-500">
+                    <button onClick={() => onReply(comment.id)} className="border px-3 rounded-lg font-semibold hover:text-blue-600">Reply</button>
                     {currentUser?.uid === comment.userId && (
                         <>
-                            <button onClick={() => onEdit(comment.id, comment.text)} className="font-semibold hover:text-green-600">Edit</button>
-                            <button onClick={() => onDelete(comment.id)} className="font-semibold hover:text-red-600">Delete</button>
+                            <button onClick={() => onEdit(comment.id, comment.text)} className="border px-3 rounded-lg font-semibold hover:text-green-600">Edit</button>
+                            <button onClick={() => onDelete(comment.id)} className="border px-3 rounded-lg font-semibold hover:text-red-600">Delete</button>
                         </>
                     )}
                 </div>
@@ -112,7 +114,7 @@ const CommentItem = ({
                                             {reply.createdAt?.toDate ? reply.createdAt.toDate().toLocaleString() : 'Loading...'}
                                         </span>
                                     </div>
-                                    {isEditing && comment.id === reply.id ? (
+                                    {editingId === reply.id ? (
                                         <div className="mt-2">
                                             <textarea
                                                 value={editText}
@@ -129,10 +131,10 @@ const CommentItem = ({
                                         <p className="text-gray-700 mt-1 text-sm">{reply.text}</p>
                                     )}
                                 </div>
-                                {currentUser?.uid === reply.userId && !isEditing && (
-                                    <div className="flex items-center gap-4 mt-1 text-xs text-gray-500">
-                                        <button onClick={() => onEdit(reply.id, reply.text)} className="font-semibold hover:text-green-600">Edit</button>
-                                        <button onClick={() => onDelete(reply.id)} className="font-semibold hover:text-red-600">Delete</button>
+                                {currentUser?.uid === reply.userId && editingId !== reply.id && (
+                                    <div className="flex items-center gap-2 mt-1 text-xs text-gray-500">
+                                        <button onClick={() => onEdit(reply.id, reply.text)} className="border px-3 rounded-lg font-semibold hover:text-green-600">Edit</button>
+                                        <button onClick={() => onDelete(reply.id)} className="border px-3 rounded-lg font-semibold hover:text-red-600">Delete</button>
                                     </div>
                                 )}
                             </div>
@@ -144,7 +146,13 @@ const CommentItem = ({
     );
 };
 
-export default function Comment({ courseId, lessonId }: { courseId: string; lessonId: string; }) {
+interface CommentProps {
+    courseId?: string;
+    lessonId?: string;
+    postId?: string;
+}
+
+export default function Comment({ courseId, lessonId, postId }: CommentProps) {
     const { user } = useAuth();
     const [comments, setComments] = useState<CommentData[]>([]);
     const [newComment, setNewComment] = useState('');
@@ -153,15 +161,32 @@ export default function Comment({ courseId, lessonId }: { courseId: string; less
     const [editText, setEditText] = useState('');
     const router = useRouter();
 
+    const getCommentsCollectionRef = () => {
+        if (postId) {
+            return collection(db, 'posts', postId, 'comments');
+        } else if (courseId && lessonId) {
+            return collection(db, 'courses', courseId, 'lessons', lessonId, 'comments');
+        } else {
+            throw new Error("Invalid props: Either postId or (courseId and lessonId) must be provided.");
+        }
+    };
+
     useEffect(() => {
-        const commentsRef = collection(db, 'courses', courseId, 'lessons', lessonId, 'comments');
+        let commentsRef;
+        try {
+            commentsRef = getCommentsCollectionRef();
+        } catch (error) {
+            console.error(error);
+            return;
+        }
+
         const q = query(commentsRef, orderBy('createdAt', 'asc'));
         const unsubscribe = onSnapshot(q, (snapshot) => {
             const data = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as CommentData));
             setComments(data);
         });
         return () => unsubscribe();
-    }, [courseId, lessonId]);
+    }, [courseId, lessonId, postId]);
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -171,7 +196,14 @@ export default function Comment({ courseId, lessonId }: { courseId: string; less
             return;
         }
 
-        const commentsRef = collection(db, 'courses', courseId, 'lessons', lessonId, 'comments');
+        let commentsRef;
+        try {
+            commentsRef = getCommentsCollectionRef();
+        } catch (error) {
+            console.error(error);
+            return;
+        }
+
         await addDoc(commentsRef, {
             userId: user.uid,
             displayName: user.displayName || 'Anonymous',
@@ -187,14 +219,26 @@ export default function Comment({ courseId, lessonId }: { courseId: string; less
 
     const handleEdit = async (commentId: string) => {
         if (!editText.trim()) return;
-        const commentRef = doc(db, 'courses', courseId, 'lessons', lessonId, 'comments', commentId);
+        let commentRef;
+        try {
+            commentRef = doc(getCommentsCollectionRef(), commentId);
+        } catch (error) {
+            console.error(error);
+            return;
+        }
         await updateDoc(commentRef, { text: editText });
         setEditingId(null);
         setEditText('');
     };
 
     const handleDelete = async (commentId: string) => {
-        const commentRef = doc(db, 'courses', courseId, 'lessons', lessonId, 'comments', commentId);
+        let commentRef;
+        try {
+            commentRef = doc(getCommentsCollectionRef(), commentId);
+        } catch (error) {
+            console.error(error);
+            return;
+        }
         await deleteDoc(commentRef);
     };
 
@@ -250,10 +294,11 @@ export default function Comment({ courseId, lessonId }: { courseId: string; less
                         onDelete={handleDelete}
                         onSave={handleEdit}
                         onCancelEdit={() => setEditingId(null)}
-                        isEditing={editingId === c.id}
+                        isEditingThisComment={editingId === c.id}
                         editText={editText}
                         setEditText={setEditText}
                         currentUser={user}
+                        editingId={editingId}
                     />
                 ))}
             </div>

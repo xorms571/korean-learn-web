@@ -1,7 +1,21 @@
 import { initializeApp } from 'firebase/app';
 import { getAuth } from 'firebase/auth';
-import { getFirestore } from 'firebase/firestore';
+import { 
+  getFirestore, 
+  collection, 
+  addDoc, 
+  getDocs, 
+  serverTimestamp,
+  query,
+  orderBy,
+  doc,
+  getDoc,
+  updateDoc,
+  arrayUnion,
+  arrayRemove
+} from 'firebase/firestore';
 import { getStorage } from 'firebase/storage';
+import { Post } from '@/types/post';
 
 // Firebase configuration
 const firebaseConfig = {
@@ -19,12 +33,6 @@ if (!firebaseConfig.apiKey || !firebaseConfig.authDomain || !firebaseConfig.proj
   throw new Error('Invalid Firebase configuration');
 }
 
-console.log('Firebase Config:', {
-  apiKey: firebaseConfig.apiKey.substring(0, 10) + '...',
-  authDomain: firebaseConfig.authDomain,
-  projectId: firebaseConfig.projectId
-});
-
 // Initialize Firebase
 const app = initializeApp(firebaseConfig);
 
@@ -33,9 +41,72 @@ export const auth = getAuth(app);
 export const db = getFirestore(app);
 export const storage = getStorage(app);
 
-// Test Firebase connection
-auth.onAuthStateChanged((user) => {
-  console.log('Firebase Auth State Changed:', user ? 'User logged in' : 'No user');
-});
+// Firestore collections
+const postsCollection = collection(db, 'posts');
+
+// Post functions
+export const createPost = async (post: Omit<Post, 'id' | 'createdAt' | 'likes' | 'commentCount'>) => {
+  try {
+    const docRef = await addDoc(postsCollection, {
+      ...post,
+      createdAt: serverTimestamp(),
+      likes: [],
+      commentCount: 0
+    });
+    return docRef.id;
+  } catch (error) {
+    console.error("Error creating post: ", error);
+    throw error;
+  }
+};
+
+export const getPosts = async (): Promise<Post[]> => {
+  try {
+    const q = query(postsCollection, orderBy('createdAt', 'desc'));
+    const querySnapshot = await getDocs(q);
+    return querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Post));
+  } catch (error) {
+    console.error("Error getting posts: ", error);
+    return [];
+  }
+};
+
+export const getPost = async (id: string): Promise<Post | null> => {
+  try {
+    const docRef = doc(db, 'posts', id);
+    const docSnap = await getDoc(docRef);
+    if (docSnap.exists()) {
+      return { id: docSnap.id, ...docSnap.data() } as Post;
+    } else {
+      console.log("No such document!");
+      return null;
+    }
+  } catch (error) {
+    console.error("Error getting post: ", error);
+    return null;
+  }
+};
+
+export const toggleLike = async (postId: string, userId: string) => {
+  const postRef = doc(db, 'posts', postId);
+  const postSnap = await getDoc(postRef);
+
+  if (postSnap.exists()) {
+    const postData = postSnap.data() as Post;
+    const currentLikes = postData.likes || [];
+
+    if (currentLikes.includes(userId)) {
+      // User already liked, so unlike
+      await updateDoc(postRef, {
+        likes: arrayRemove(userId)
+      });
+    } else {
+      // User hasn't liked, so like
+      await updateDoc(postRef, {
+        likes: arrayUnion(userId)
+      });
+    }
+  }
+};
 
 export default app;

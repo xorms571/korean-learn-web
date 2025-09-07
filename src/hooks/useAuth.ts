@@ -6,7 +6,8 @@ import {
   onAuthStateChanged,
   User,
   createUserWithEmailAndPassword,
-  signInWithEmailAndPassword
+  signInWithEmailAndPassword,
+  updateProfile
 } from 'firebase/auth';
 import { doc, setDoc, getDoc } from 'firebase/firestore';
 import { auth, db } from '@/lib/firebase';
@@ -97,6 +98,9 @@ export function useAuth() {
       const result = await createUserWithEmailAndPassword(auth, email, password);
       const currentUser = auth.currentUser;
       if (!currentUser) throw new Error("User not authenticated yet");
+
+      // Update the user's profile with the display name
+      await updateProfile(currentUser, { displayName });
 
       const newUserProfile: UserProfile = {
         uid: result.user.uid,

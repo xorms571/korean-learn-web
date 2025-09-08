@@ -104,32 +104,37 @@ export default function CourseDetailPage({ params }: { params: Promise<{ id: str
         }
     }, [currentLesson]);
 
-    // --- Study Time Tracking Effect ---
+    // --- Study Time Tracking & Streak Update Effect ---
     useEffect(() => {
-        if (authLoading || loading || !user) return;
+        if (authLoading || loading || !user || !userProfile) return;
 
         const startTime = Date.now();
+
         return () => {
             const elapsedSeconds = Math.round((Date.now() - startTime) / 1000);
             if (elapsedSeconds > 5) { // Min duration to count as a session
                 const userRef = doc(db, 'users', user.uid);
-                updateDoc(userRef, { totalStudySeconds: increment(elapsedSeconds) }).catch(console.error);
+                const today = getYYYYMMDD(new Date());
+                
+                const updates: any = {
+                    totalStudySeconds: increment(elapsedSeconds)
+                };
+
+                if (today !== userProfile.lastActivityDate) {
+                    const yesterday = getYYYYMMDD(new Date(Date.now() - 86400000));
+                    updates.streak = userProfile.lastActivityDate === yesterday ? increment(1) : 1;
+                    updates.lastActivityDate = today;
+                }
+                
+                updateDoc(userRef, updates).catch(console.error);
             }
         };
-    }, [authLoading, loading, user]);
+    }, [authLoading, loading, user, userProfile]);
 
-    // --- Progress & Streak Update Effect ---
-    const updateProgressAndStreak = useCallback(() => {
+    // --- Progress Update Effect ---
+    const updateProgress = useCallback(() => {
         if (isInitialLoad || authLoading || loading || !user || !userProfile || !course || !currentLesson || courseProgress?.isCompleted) {
             return;
-        }
-
-        const today = getYYYYMMDD(new Date());
-        if (today !== userProfile.lastActivityDate) {
-            const yesterday = getYYYYMMDD(new Date(Date.now() - 86400000));
-            const newStreak = userProfile.lastActivityDate === yesterday ? increment(1) : 1;
-            const userRef = doc(db, 'users', user.uid);
-            updateDoc(userRef, { streak: newStreak, lastActivityDate: today }).catch(console.error);
         }
 
         const lessonNumber = currentLesson.lessonNumber;
@@ -164,12 +169,12 @@ export default function CourseDetailPage({ params }: { params: Promise<{ id: str
 
     useEffect(() => {
         if (!loading && !isInitialLoad) {
-            updateProgressAndStreak();
+            updateProgress();
         }
         if (!loading && isInitialLoad) {
             setIsInitialLoad(false);
         }
-    }, [currentLessonIndex, loading, isInitialLoad, updateProgressAndStreak]);
+    }, [currentLessonIndex, loading, isInitialLoad, updateProgress]);
 
     // --- Event Handlers ---
     const speakText = (text: string) => {

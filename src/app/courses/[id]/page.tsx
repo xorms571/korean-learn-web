@@ -83,25 +83,27 @@ export default function CourseDetailPage({ params }: { params: Promise<{ id: str
     useEffect(() => {
         if (currentLesson?.exampleSentences) {
             const fetchImages = async () => {
-                const newImageUrls: Record<string, string> = {};
                 for (const key in currentLesson.exampleSentences) {
+                    if (exampleImageUrls[key]) continue;
                     const sentence = currentLesson.exampleSentences[key];
                     try {
-                        setImageLoading(true)
                         const response = await fetch(`/api/pexels?query=${encodeURIComponent(sentence.english)}`);
                         if (response.ok) {
                             const data = await response.json();
-                            if (data.imageUrl) newImageUrls[key] = data.imageUrl;
-                            setImageLoading(false);
+                            if (data.imageUrl) {
+                                setExampleImageUrls(prev => ({...prev, [key]: data.imageUrl}));
+                            }
                         }
                     } catch (error) {
                         console.error(`Error fetching image for "${sentence.english}"`, error);
                     }
+                    // Add a delay between requests
+                    await new Promise(resolve => setTimeout(resolve, 300)); // 300ms delay
                 }
-                setExampleImageUrls(newImageUrls);
             };
             fetchImages();
         }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [currentLesson]);
 
     // --- Study Time Tracking & Streak Update Effect ---
@@ -253,10 +255,11 @@ export default function CourseDetailPage({ params }: { params: Promise<{ id: str
                                                 <h3 className="text-2xl font-semibold text-gray-700 border-b pb-2">Example Sentences</h3>
                                                 {Object.entries(currentLesson.exampleSentences).map(([key, ex]) => (
                                                     <div key={key} className="bg-gray-50 rounded-lg p-2 md:p-4 flex items-center md:items-start gap-4 transition-shadow hover:shadow-lg">
-                                                        <div className='w-20 h-20 md:w-32 md:h-32 bg-slate-100 rounded-md overflow-hidden'>
-                                                            {imageLoading ? <div className='w-full h-full flex justify-center items-center'><div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div></div> :
-                                                                exampleImageUrls[key] &&
-                                                                <img src={exampleImageUrls[key]} alt={ex.korean} className="w-full h-full object-cover" />}
+                                                        <div className='w-20 h-20 md:w-32 md:h-32 bg-slate-100 rounded-md overflow-hidden flex justify-center items-center'>
+                                                            {exampleImageUrls[key] ? 
+                                                                <img src={exampleImageUrls[key]} alt={ex.korean} className="w-full h-full object-cover fade-in-image" /> :
+                                                                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+                                                            }
                                                         </div>
                                                         <div className="flex-1">
                                                             <div className="flex items-center justify-between">

@@ -76,30 +76,32 @@ export default function CoursesPage() {
 
   useEffect(() => {
     const fetchImages = async () => {
-      const imageUrls: Record<string, string> = {};
-      await Promise.all(
-        courses.map(async (course) => {
-          try {
-            const response = await fetch(
-              `/api/pexels?query=${encodeURIComponent(course.title)}`
-            );
-            if (response.ok) {
-              const data = await response.json();
-              if (data.imageUrl) {
-                imageUrls[course.id] = data.imageUrl;
-              }
+      for (const course of courses) {
+        // Avoid refetching if image already exists
+        if (courseImageUrls[course.id]) continue;
+
+        try {
+          const response = await fetch(
+            `/api/pexels?query=${encodeURIComponent(course.title)}`
+          );
+          if (response.ok) {
+            const data = await response.json();
+            if (data.imageUrl) {
+              setCourseImageUrls(prev => ({...prev, [course.id]: data.imageUrl}));
             }
-          } catch (error) {
-            console.error(`Error fetching image for "${course.title}":`, error);
           }
-        })
-      );
-      setCourseImageUrls(imageUrls);
+        } catch (error) {
+          console.error(`Error fetching image for "${course.title}":`, error);
+        }
+        // Add a delay between requests to avoid hitting rate limits
+        await new Promise(resolve => setTimeout(resolve, 300)); // 300ms delay
+      }
     };
 
     if (courses.length > 0) {
       fetchImages();
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [courses]);
 
   const coursesWithProgress = useMemo(() => {
@@ -198,7 +200,7 @@ export default function CoursesPage() {
           {filteredCourses.map((course) => (
             <div key={course.id} className={`bg-white rounded-lg shadow overflow-hidden hover:shadow-lg transition-shadow ${course.isCompleted ? 'border-2 border-yellow-400' : ''}`}>
               <div className="relative h-48 bg-gray-200 flex items-center justify-center">
-                {courseImageUrls[course.id] ? <img src={courseImageUrls[course.id]} alt={course.title} className='w-full h-full object-cover' /> : <div className="text-gray-500">Loading Image...</div>}
+                {courseImageUrls[course.id] ? <img src={courseImageUrls[course.id]} alt={course.title} className='w-full h-full object-cover fade-in-image' /> : <div className="text-gray-500">Loading Image...</div>}
                 {course.isCompleted && (
                   <div className="absolute top-2 right-2 flex items-center gap-1 bg-yellow-400 text-white font-bold px-2 py-1 rounded-md text-xs shadow-lg">
                     <FiAward />

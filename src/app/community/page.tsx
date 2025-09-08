@@ -6,12 +6,14 @@ import { useRouter } from 'next/navigation';
 import Loading from '@/components/Loading';
 import CreatePost from '@/components/CreatePost';
 import PostCard from '@/components/PostCard';
-import { getPosts } from '@/lib/firebase';
+import { getPosts, getUsersByIds } from '@/lib/firebase';
 import { Post } from '@/types/post';
+import { UserProfile } from '@/hooks/useAuth';
 
 export default function CommunityPage() {
   const { user, loading } = useAuth();
   const [posts, setPosts] = useState<Post[]>([]);
+  const [authors, setAuthors] = useState<Record<string, UserProfile>>({});
   const [activeTab, setActiveTab] = useState('all');
   const [searchQuery, setSearchQuery] = useState('');
   const [isLoadingPosts, setIsLoadingPosts] = useState(true);
@@ -24,15 +26,22 @@ export default function CommunityPage() {
     }*/
   }, [user, loading, router]);
 
-  const fetchPosts = async () => {
+  const fetchPostsAndAuthors = async () => {
     setIsLoadingPosts(true);
     const fetchedPosts = await getPosts();
     setPosts(fetchedPosts);
+
+    if (fetchedPosts.length > 0) {
+      const authorIds = [...new Set(fetchedPosts.map(p => p.authorId))];
+      const authorProfiles = await getUsersByIds(authorIds);
+      setAuthors(authorProfiles);
+    }
+
     setIsLoadingPosts(false);
   };
 
   useEffect(() => {
-    fetchPosts();
+    fetchPostsAndAuthors();
   }, []);
 
   const filteredPosts = useMemo(() => {
@@ -68,7 +77,7 @@ export default function CommunityPage() {
 
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
           <div className="lg:col-span-3">
-            <CreatePost onPostCreated={fetchPosts} />
+            <CreatePost onPostCreated={fetchPostsAndAuthors} />
 
             <div className="bg-white rounded-lg shadow">
               <div className="p-6 border-b border-gray-200">
@@ -91,7 +100,7 @@ export default function CommunityPage() {
                 ) : (
                   <div>
                     {filteredPosts.map(post => (
-                      <PostCard key={post.id} post={post} />
+                      <PostCard key={post.id} post={post} author={authors[post.authorId]} />
                     ))}
                   </div>
                 )}

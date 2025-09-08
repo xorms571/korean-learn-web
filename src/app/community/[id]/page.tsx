@@ -2,8 +2,8 @@
 
 import { use, useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { useAuth } from '@/hooks/useAuth';
-import { getPost, toggleLike, deletePost } from '@/lib/firebase';
+import { useAuth, UserProfile } from '@/hooks/useAuth';
+import { getPost, toggleLike, deletePost, getUsersByIds } from '@/lib/firebase';
 import { Post } from '@/types/post';
 import Loading from '@/components/Loading';
 import Comment from '@/components/Comment';
@@ -13,6 +13,7 @@ export default function PostDetailPage({ params }: { params: Promise<{ id: strin
   const { id } = use(params);
   const { user, loading } = useAuth();
   const [post, setPost] = useState<Post | null>(null);
+  const [author, setAuthor] = useState<UserProfile | null>(null);
   const [isLoadingPost, setIsLoadingPost] = useState(true);
   const router = useRouter();
 
@@ -23,14 +24,20 @@ export default function PostDetailPage({ params }: { params: Promise<{ id: strin
       return;
     }*/
 
-    const fetchPost = async () => {
+    const fetchPostAndAuthor = async () => {
       setIsLoadingPost(true);
       const fetchedPost = await getPost(id);
       setPost(fetchedPost);
+
+      if (fetchedPost) {
+        const authorProfile = await getUsersByIds([fetchedPost.authorId]);
+        setAuthor(authorProfile[fetchedPost.authorId]);
+      }
+
       setIsLoadingPost(false);
     };
 
-    fetchPost();
+    fetchPostAndAuthor();
   }, [id, user, loading, router]);
 
   const handleLikeToggle = async () => {
@@ -72,6 +79,8 @@ export default function PostDetailPage({ params }: { params: Promise<{ id: strin
   }
 
   const isLiked = user && post.likes.includes(user.uid);
+  const authorName = author?.displayName || 'User';
+  const authorAvatar = author?.photoURL || '/default-avatar.png';
 
   return (
     <div className="bg-gray-50 py-8">
@@ -79,8 +88,8 @@ export default function PostDetailPage({ params }: { params: Promise<{ id: strin
         <div className="bg-white rounded-lg shadow p-6 mb-6">
           <h1 className="text-3xl font-bold text-gray-900 mb-4">{post.title}</h1>
           <div className="flex items-center text-sm text-gray-600 mb-4">
-            <img src={post.authorAvatar} alt={post.authorName} className="w-8 h-8 rounded-full mr-2" />
-            <span>By {post.authorName}</span>
+            <img src={authorAvatar} alt={authorName} className="w-8 h-8 rounded-full mr-2" />
+            <span>By {authorName}</span>
             <span className="mx-2">•</span>
             <span>{new Date(post.createdAt?.toDate()).toLocaleString()}</span>
             <span className="inline-block bg-blue-100 text-blue-700 px-2 py-1 rounded-full text-xs font-medium ml-4">

@@ -23,8 +23,6 @@ export default function CreatePost({ onPostCreated }: CreatePostProps) {
     try {
       await createPost({
         authorId: user.uid,
-        authorName: user.displayName || 'Anonymous',
-        authorAvatar: user.photoURL || '/default-avatar.png',
         title,
         content,
         category,

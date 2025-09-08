@@ -1,10 +1,13 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect, ChangeEvent } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { useRouter } from 'next/navigation';
-import { useEffect } from 'react';
 import Loading from '@/components/Loading';
+import { auth, db, storage } from '@/lib/firebase';
+import { updateProfile } from 'firebase/auth';
+import { doc, updateDoc } from 'firebase/firestore';
+import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 
 // --- Helper Functions ---
 const formatStudyTime = (totalSeconds: number): string => {
@@ -22,11 +25,71 @@ export default function ProfilePage() {
   const { user, userProfile, loading } = useAuth();
   const router = useRouter();
 
+  // State for editing
+  const [displayName, setDisplayName] = useState('');
+  const [photoFile, setPhotoFile] = useState<File | null>(null);
+  const [photoPreview, setPhotoPreview] = useState<string | null>(null);
+  const [isSaving, setIsSaving] = useState(false);
+
   useEffect(() => {
     if (!loading && !user) {
       router.push('/login');
     }
-  }, [user, loading, router]);
+    if (userProfile) {
+      setDisplayName(userProfile.displayName);
+      setPhotoPreview(userProfile.photoURL || null);
+    }
+  }, [user, loading, router, userProfile]);
+
+  const handlePhotoChange = (e: ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files[0]) {
+      const file = e.target.files[0];
+      setPhotoFile(file);
+      setPhotoPreview(URL.createObjectURL(file));
+    }
+  };
+
+  const handleSaveChanges = async () => {
+    if (!user || !userProfile) return;
+    
+    const profileChanged = displayName !== userProfile.displayName || photoFile;
+    if (!profileChanged) {
+        return; // No changes to save
+    }
+
+    setIsSaving(true);
+    let newPhotoURL = userProfile.photoURL || '';
+
+    try {
+      // 1. Upload new photo if it exists
+      if (photoFile) {
+        const storageRef = ref(storage, `profile_pictures/${user.uid}`);
+        const uploadResult = await uploadBytes(storageRef, photoFile);
+        newPhotoURL = await getDownloadURL(uploadResult.ref);
+      }
+
+      // 2. Update Firestore user document
+      const userDocRef = doc(db, 'users', user.uid);
+      await updateDoc(userDocRef, {
+        displayName: displayName,
+        photoURL: newPhotoURL,
+      });
+
+      // 3. Update Firebase Auth profile
+      await updateProfile(auth.currentUser!, {
+        displayName: displayName,
+        photoURL: newPhotoURL,
+      });
+      
+      alert('Profile updated successfully!');
+
+    } catch (error) {
+      console.error("Error updating profile:", error);
+      alert("Failed to update profile.");
+    } finally {
+      setIsSaving(false);
+    }
+  };
 
   if (loading) {
     return <Loading />;
@@ -43,21 +106,35 @@ export default function ProfilePage() {
         <div className="bg-white rounded-lg shadow mb-8">
           <div className="p-8 text-center">
             <div className="mb-6">
-              {userProfile.photoURL ? (
-                <img 
-                  src={userProfile.photoURL} 
-                  alt={userProfile.displayName}
-                  className="w-24 h-24 rounded-full mx-auto border-4 border-blue-100"
+                <input
+                    type="file"
+                    id="photoInput"
+                    hidden
+                    accept="image/*"
+                    onChange={handlePhotoChange}
                 />
-              ) : (
-                <div className="w-24 h-24 bg-blue-100 rounded-full mx-auto border-4 border-blue-200 flex items-center justify-center">
-                  <svg className="w-12 h-12 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                  </svg>
-                </div>
-              )}
+                <label htmlFor="photoInput" className="cursor-pointer group relative block">
+                    {photoPreview ? (
+                        <img 
+                        src={photoPreview} 
+                        alt="Profile"
+                        className="w-24 h-24 rounded-full mx-auto border-4 border-blue-100 group-hover:opacity-75 transition-opacity"
+                        />
+                    ) : (
+                        <div className="w-24 h-24 bg-blue-100 rounded-full mx-auto border-4 border-blue-200 flex items-center justify-center group-hover:opacity-75 transition-opacity">
+                        <svg className="w-12 h-12 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                        </svg>
+                        </div>
+                    )}
+                    <div className='absolute inset-0 flex items-center justify-center'>
+                      <div className="w-24 h-24 bg-black bg-opacity-0 group-hover:bg-opacity-40 flex items-center justify-center rounded-full transition-opacity">
+                          <p className="text-white opacity-0 group-hover:opacity-100">Change</p>
+                      </div>
+                    </div>
+                </label>
             </div>
-            <h1 className="text-3xl font-bold text-gray-900 mb-2">{userProfile.displayName}</h1>
+            <h1 className="text-3xl font-bold text-gray-900 mb-2">{displayName}</h1>
             <p className="text-gray-600 mb-4">{userProfile.email}</p>
             <div className="flex justify-center space-x-6 text-sm text-gray-500">
               <span>Member since {userProfile.joinDate}</span>
@@ -101,7 +178,8 @@ export default function ProfilePage() {
                     <label className="block text-sm font-medium text-gray-700 mb-2">Display Name</label>
                     <input
                       type="text"
-                      defaultValue={userProfile.displayName}
+                      value={displayName}
+                      onChange={(e) => setDisplayName(e.target.value)}
                       className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                       placeholder="Enter your display name"
                     />
@@ -117,8 +195,11 @@ export default function ProfilePage() {
                   </div>
                 </div>
                 <div className="flex justify-end">
-                  <button className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition-colors">
-                    Save Changes
+                  <button 
+                    onClick={handleSaveChanges}
+                    disabled={isSaving}
+                    className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition-colors disabled:bg-gray-400">
+                    {isSaving ? 'Saving...' : 'Save Changes'}
                   </button>
                 </div>
               </div>

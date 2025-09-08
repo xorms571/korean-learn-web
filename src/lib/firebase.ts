@@ -13,10 +13,12 @@ import {
   updateDoc,
   arrayUnion,
   arrayRemove,
-  deleteDoc
+  deleteDoc,
+  where
 } from 'firebase/firestore';
 import { getStorage } from 'firebase/storage';
 import { Post } from '@/types/post';
+import { UserProfile } from '@/hooks/useAuth';
 
 // Firebase configuration
 const firebaseConfig = {
@@ -118,6 +120,23 @@ export const deletePost = async (postId: string) => {
 export const updatePost = async (postId: string, data: Partial<Post>) => {
   const postRef = doc(db, 'posts', postId);
   await updateDoc(postRef, data);
+};
+
+export const getUsersByIds = async (uids: string[]): Promise<Record<string, UserProfile>> => {
+  if (uids.length === 0) {
+    return {};
+  }
+  
+  const usersRef = collection(db, 'users');
+  const q = query(usersRef, where('uid', 'in', uids));
+  
+  const querySnapshot = await getDocs(q);
+  const users: Record<string, UserProfile> = {};
+  querySnapshot.forEach(doc => {
+    users[doc.id] = doc.data() as UserProfile;
+  });
+  
+  return users;
 };
 
 export default app;

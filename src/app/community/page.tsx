@@ -55,24 +55,43 @@ export default function CommunityPage() {
       );
   }, [posts, activeTab, searchQuery]);
 
+  const categoryCounts = useMemo(() => {
+    const counts: Record<string, number> = {};
+    for (const post of posts) {
+      if (post.category) {
+        counts[post.category] = (counts[post.category] || 0) + 1;
+      }
+    }
+    return counts;
+  }, [posts]);
+
   const categories = ['all', 'general', 'grammar', 'vocabulary', 'pronunciation', 'culture'];
 
   if (loading /*|| !user*/) return <Loading />;
 
   return (
-    <div className="bg-gray-50 py-8">
+    <div className="min-h-screen bg-gray-50 py-8">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-gray-900 mb-4">Community</h1>
           <p className="text-gray-600">Connect with other Korean learners, ask questions, and share your progress.</p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-          <div className="bg-white rounded-lg shadow p-6 text-center">
-            <div className="text-2xl font-bold text-blue-600">{posts.length}</div>
-            <div className="text-sm text-gray-600">Total Posts</div>
-          </div>
-          {/* Other stats can be implemented here */}
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-6 mb-8">
+          {categories.map(category => (
+            <div key={category} className="bg-white rounded-lg shadow p-6 text-center">
+              <div className="text-2xl font-bold text-blue-600">
+                {category === 'all' 
+                  ? posts.length 
+                  : categoryCounts[category] || 0}
+              </div>
+              <div className="text-sm text-gray-600">
+                {category === 'all' 
+                  ? 'Total Posts' 
+                  : category.charAt(0).toUpperCase() + category.slice(1)}
+              </div>
+            </div>
+          ))}
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">

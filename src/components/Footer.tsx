@@ -10,7 +10,7 @@ export default function Footer() {
               A systematic and effective Korean learning platform for English speakers.
             </p>
             <p className="text-gray-400 text-sm">
-              © 2024 Korean Learning. All rights reserved.
+              © 2025 Korean Learning. All rights reserved.
             </p>
           </div>
 

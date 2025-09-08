@@ -134,9 +134,9 @@ export default function ProfilePage() {
                     </div>
                 </label>
             </div>
-            <h1 className="text-3xl font-bold text-gray-900 mb-2">{displayName}</h1>
+            <h1 className="text-lg md:text-3xl font-bold text-gray-900 mb-2">{displayName}</h1>
             <p className="text-gray-600 mb-4">{userProfile.email}</p>
-            <div className="flex justify-center space-x-6 text-sm text-gray-500">
+            <div className="flex flex-col md:flex-row justify-center gap-3 md:gap-6 text-sm text-gray-500">
               <span>Member since {userProfile.joinDate}</span>
               <span>Level {userProfile.currentLevel}</span>
             </div>
@@ -146,7 +146,7 @@ export default function ProfilePage() {
         {/* Tabs */}
         <div className="bg-white rounded-lg shadow mb-8">
           <div className="border-b border-gray-200">
-            <nav className="flex space-x-8 px-6">
+            <nav className="flex space-x-8 px-6 overflow-x-auto">
               {[
                 { id: 'profile', label: 'Profile', icon: '👤' },
                 { id: 'progress', label: 'Learning Progress', icon: '📊' },
@@ -156,7 +156,7 @@ export default function ProfilePage() {
                 <button
                   key={tab.id}
                   onClick={() => setActiveTab(tab.id)}
-                  className={`py-4 px-1 border-b-2 font-medium text-sm ${
+                  className={`flex text-nowrap py-4 px-1 border-b-2 font-medium text-sm ${
                     activeTab === tab.id
                       ? 'border-blue-500 text-blue-600'
                       : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'

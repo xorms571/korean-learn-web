@@ -81,10 +81,12 @@ export default function CourseDetailPage({ params }: { params: Promise<{ id: str
 
     // --- Image Fetching Effect ---
     useEffect(() => {
+        // When lesson changes, clear the images from the previous lesson.
+        setExampleImageUrls({});
+
         if (currentLesson?.exampleSentences) {
             const fetchImages = async () => {
                 for (const key in currentLesson.exampleSentences) {
-                    if (exampleImageUrls[key]) continue;
                     const sentence = currentLesson.exampleSentences[key];
                     try {
                         const response = await fetch(`/api/pexels?query=${encodeURIComponent(sentence.english)}`);
@@ -103,7 +105,6 @@ export default function CourseDetailPage({ params }: { params: Promise<{ id: str
             };
             fetchImages();
         }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [currentLesson]);
 
     // --- Study Time Tracking & Streak Update Effect ---

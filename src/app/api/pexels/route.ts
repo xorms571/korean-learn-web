@@ -45,7 +45,7 @@ export async function GET(request: Request) {
     }
 
     const data = await response.json();
-    const imageUrl = data.photos[0]?.src?.medium;
+    const imageUrl = data.photos[0]?.src?.small;
 
     if (imageUrl) {
       // Store in cache

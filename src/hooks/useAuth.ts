@@ -9,7 +9,7 @@ import {
   signInWithEmailAndPassword,
   updateProfile
 } from 'firebase/auth';
-import { doc, setDoc, getDoc, onSnapshot } from 'firebase/firestore';
+import { doc, setDoc, getDoc, onSnapshot, collection, query, where, updateDoc } from 'firebase/firestore';
 import { auth, db } from '@/lib/firebase';
 
 export interface UserProfile {
@@ -47,7 +47,9 @@ export function useAuth() {
       const userDocRef = doc(db, 'users', user.uid);
       const profileUnsubscribe = onSnapshot(userDocRef, (doc) => {
         if (doc.exists()) {
-          setUserProfile(doc.data() as UserProfile);
+          const userData = doc.data() as UserProfile;
+          setUserProfile(userData);
+          console.log("User Profile updated:", userData);
         } else {
           setUserProfile(null); 
         }
@@ -57,7 +59,23 @@ export function useAuth() {
         setLoading(false);
       });
 
-      return () => profileUnsubscribe();
+      // Listener for completed courses count
+      const enrolledCoursesRef = collection(db, 'user_progress', user.uid, 'enrolled_courses');
+      const completedCoursesUnsubscribe = onSnapshot(query(enrolledCoursesRef, where("isCompleted", "==", true)), (snapshot) => {
+        const completedCoursesCount = snapshot.size;
+        console.log("Completed courses count from subcollection:", completedCoursesCount);
+        // Update the user's main document with the count of completed courses
+        updateDoc(userDocRef, {
+          completedLessons: completedCoursesCount 
+        }).catch(console.error);
+      }, (error) => {
+        console.error("Firestore completed courses onSnapshot error:", error);
+      });
+
+      return () => {
+        profileUnsubscribe();
+        completedCoursesUnsubscribe(); 
+      };
     } else {
       setUserProfile(null);
     }

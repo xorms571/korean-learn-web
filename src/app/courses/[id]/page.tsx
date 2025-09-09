@@ -30,7 +30,6 @@ export default function CourseDetailPage({ params }: { params: Promise<{ id: str
     const [course, setCourse] = useState<Course | null>(null);
     const [courseProgress, setCourseProgress] = useState<CourseProgress | null>(null);
     const [loading, setLoading] = useState(true);
-    const [imageLoading, setImageLoading] = useState(true);
     const [currentLessonIndex, setCurrentLessonIndex] = useState(0);
     const [exampleImageUrls, setExampleImageUrls] = useState<Record<string, string>>({});
     const [isQuizActive, setIsQuizActive] = useState(false);

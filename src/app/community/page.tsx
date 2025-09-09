@@ -9,6 +9,7 @@ import PostCard from '@/components/PostCard';
 import { getPosts, getUsersByIds } from '@/lib/firebase';
 import { Post } from '@/types/post';
 import { UserProfile } from '@/hooks/useAuth';
+import UserRanking from '@/components/UserRanking';
 
 export default function CommunityPage() {
   const { user, loading } = useAuth();
@@ -146,6 +147,7 @@ export default function CommunityPage() {
                 ))}
               </div>
             </div>
+            <UserRanking />
             <div className="bg-white rounded-lg shadow p-6">
               <h3 className="text-lg font-semibold text-gray-900 mb-4">Community Guidelines</h3>
               <ul className="space-y-2 text-sm text-gray-600">

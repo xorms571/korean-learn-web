@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { collection, doc, getDoc, getDocs, orderBy, query } from "firebase/firestore";
+import { collection, doc, getDoc, getDocs, orderBy, query, limit, updateDoc } from "firebase/firestore";
 import { useAuth } from "@/hooks/useAuth";
 import { FiAward } from "react-icons/fi";
 import { db } from "@/lib/firebase";
@@ -97,11 +97,19 @@ export const useProgress = () => {
                     })
                 );
 
-                setEnrolledCourses(coursesData.filter((c) => c !== null) as EnrolledCourse[]);
+                                setEnrolledCourses(coursesData.filter((c) => c !== null) as EnrolledCourse[]);
                 setProgressOverview({
                     totalCompletedLessons: totalCompleted,
                     totalEnrolledLessons: totalEnrolled,
                 });
+
+                // Update totalIndividualLessonsCompleted in user's main document
+                if (user) {
+                    const userRef = doc(db, 'users', user.uid);
+                    await updateDoc(userRef, {
+                        totalIndividualLessonsCompleted: totalCompleted
+                    }).catch(console.error);
+                }
             } catch (error) {
                 console.error("Error fetching dashboard data:", error);
             } finally {
@@ -181,7 +189,13 @@ export const useProgress = () => {
         user,
         authLoading,
         userProfile,
+        db,
         formatStudyTime,
-        FiAward
+        FiAward,
+        collection,
+        query,
+        orderBy,
+        limit,
+        getDocs
     };
 };

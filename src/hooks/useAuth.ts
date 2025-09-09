@@ -26,6 +26,21 @@ export interface UserProfile {
   totalLessons: number;
 }
 
+export interface UserProfile {
+  uid: string;
+  email: string;
+  displayName: string;
+  photoURL?: string;
+  joinDate: string;
+  currentLevel: string;
+  totalStudySeconds: number; // Changed from string to number
+  streak: number;
+  lastActivityDate: string; // Added to track streak
+  completedLessons: number; // This is now completed courses count
+  totalIndividualLessonsCompleted: number; // New field for total individual lessons
+  totalLessons: number;
+}
+
 export function useAuth() {
   const [user, setUser] = useState<User | null>(null);
   const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
@@ -49,7 +64,6 @@ export function useAuth() {
         if (doc.exists()) {
           const userData = doc.data() as UserProfile;
           setUserProfile(userData);
-          console.log("User Profile updated:", userData);
         } else {
           setUserProfile(null); 
         }
@@ -62,9 +76,7 @@ export function useAuth() {
       // Listener for completed courses count
       const enrolledCoursesRef = collection(db, 'user_progress', user.uid, 'enrolled_courses');
       const completedCoursesUnsubscribe = onSnapshot(query(enrolledCoursesRef, where("isCompleted", "==", true)), (snapshot) => {
-        const completedCoursesCount = snapshot.size;
-        console.log("Completed courses count from subcollection:", completedCoursesCount);
-        // Update the user's main document with the count of completed courses
+        const completedCoursesCount = snapshot.size;// Update the user's main document with the count of completed courses
         updateDoc(userDocRef, {
           completedLessons: completedCoursesCount 
         }).catch(console.error);
@@ -104,6 +116,7 @@ export function useAuth() {
           streak: 0,
           lastActivityDate: '',
           completedLessons: 0,
+          totalIndividualLessonsCompleted: 0, // New field
           totalLessons: 0
         };
 
@@ -144,6 +157,7 @@ export function useAuth() {
         streak: 0,
         lastActivityDate: '',
         completedLessons: 0,
+        totalIndividualLessonsCompleted: 0, // New field
         totalLessons: 0
       };
 

@@ -8,24 +8,9 @@ import { auth, db, storage } from '@/lib/firebase';
 import { updateProfile } from 'firebase/auth';
 import { doc, updateDoc } from 'firebase/firestore';
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
-
-// --- Helper Functions ---
-const formatStudyTime = (totalSeconds: number): string => {
-    if (!totalSeconds || totalSeconds <= 0) return '0m';
-
-    const hours = Math.floor(totalSeconds / 3600);
-    const minutes = Math.floor((totalSeconds % 3600) / 60);
-
-    if (hours > 0) {
-        return `${hours}h ${minutes}m`;
-    }
-
-    if (minutes > 0) {
-        return `${minutes}m`;
-    }
-
-    return '< 1m';
-};
+import Achievement from '@/components/Achievement';
+import { useProgress } from '@/hooks/useProgress';
+import RecentCourses from '@/components/RecentCourses';
 
 export default function ProfilePage() {
   const [activeTab, setActiveTab] = useState('profile');
@@ -37,6 +22,7 @@ export default function ProfilePage() {
   const [photoFile, setPhotoFile] = useState<File | null>(null);
   const [photoPreview, setPhotoPreview] = useState<string | null>(null);
   const [isSaving, setIsSaving] = useState(false);
+  const { achievements, enrolledCourses, progressOverview, formatStudyTime, FiAward } = useProgress()
 
   useEffect(() => {
     if (!loading && !user) {
@@ -58,10 +44,10 @@ export default function ProfilePage() {
 
   const handleSaveChanges = async () => {
     if (!user || !userProfile) return;
-    
+
     const profileChanged = displayName !== userProfile.displayName || photoFile;
     if (!profileChanged) {
-        return; // No changes to save
+      return; // No changes to save
     }
 
     setIsSaving(true);
@@ -87,7 +73,7 @@ export default function ProfilePage() {
         displayName: displayName,
         photoURL: newPhotoURL,
       });
-      
+
       alert('Profile updated successfully!');
 
     } catch (error) {
@@ -113,33 +99,33 @@ export default function ProfilePage() {
         <div className="bg-white rounded-lg shadow mb-8">
           <div className="p-8 text-center">
             <div className="mb-6">
-                <input
-                    type="file"
-                    id="photoInput"
-                    hidden
-                    accept="image/*"
-                    onChange={handlePhotoChange}
-                />
-                <label htmlFor="photoInput" className="cursor-pointer group relative block">
-                    {photoPreview ? (
-                        <img 
-                        src={photoPreview} 
-                        alt="Profile"
-                        className="w-24 h-24 rounded-full mx-auto border-4 border-blue-100 group-hover:opacity-75 transition-opacity"
-                        />
-                    ) : (
-                        <div className="w-24 h-24 bg-blue-100 rounded-full mx-auto border-4 border-blue-200 flex items-center justify-center group-hover:opacity-75 transition-opacity">
-                        <svg className="w-12 h-12 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                        </svg>
-                        </div>
-                    )}
-                    <div className='absolute inset-0 flex items-center justify-center'>
-                      <div className="w-24 h-24 bg-black bg-opacity-0 group-hover:bg-opacity-40 flex items-center justify-center rounded-full transition-opacity">
-                          <p className="text-white opacity-0 group-hover:opacity-100">Change</p>
-                      </div>
-                    </div>
-                </label>
+              <input
+                type="file"
+                id="photoInput"
+                hidden
+                accept="image/*"
+                onChange={handlePhotoChange}
+              />
+              <label htmlFor="photoInput" className="cursor-pointer group relative block">
+                {photoPreview ? (
+                  <img
+                    src={photoPreview}
+                    alt="Profile"
+                    className="w-24 h-24 rounded-full mx-auto border-4 border-blue-100 group-hover:opacity-75 transition-opacity"
+                  />
+                ) : (
+                  <div className="w-24 h-24 bg-blue-100 rounded-full mx-auto border-4 border-blue-200 flex items-center justify-center group-hover:opacity-75 transition-opacity">
+                    <svg className="w-12 h-12 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                    </svg>
+                  </div>
+                )}
+                <div className='absolute inset-0 flex items-center justify-center'>
+                  <div className="w-24 h-24 bg-black bg-opacity-0 group-hover:bg-opacity-40 flex items-center justify-center rounded-full transition-opacity">
+                    <p className="text-white opacity-0 group-hover:opacity-100">Change</p>
+                  </div>
+                </div>
+              </label>
             </div>
             <h1 className="text-lg md:text-3xl font-bold text-gray-900 mb-2">{displayName}</h1>
             <p className="text-gray-600 mb-4">{userProfile.email}</p>
@@ -163,11 +149,10 @@ export default function ProfilePage() {
                 <button
                   key={tab.id}
                   onClick={() => setActiveTab(tab.id)}
-                  className={`flex text-nowrap py-4 px-1 border-b-2 font-medium text-sm ${
-                    activeTab === tab.id
+                  className={`flex text-nowrap py-4 px-1 border-b-2 font-medium text-sm ${activeTab === tab.id
                       ? 'border-blue-500 text-blue-600'
                       : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-                  }`}
+                    }`}
                 >
                   <span className="mr-2">{tab.icon}</span>
                   {tab.label}
@@ -202,7 +187,7 @@ export default function ProfilePage() {
                   </div>
                 </div>
                 <div className="flex justify-end">
-                  <button 
+                  <button
                     onClick={handleSaveChanges}
                     disabled={isSaving}
                     className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition-colors disabled:bg-gray-400">
@@ -216,9 +201,17 @@ export default function ProfilePage() {
             {activeTab === 'progress' && (
               <div className="space-y-6">
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                  <div className="bg-orange-50 rounded-lg p-6 text-center">
+                    <div className="text-2xl font-bold text-orange-600 mb-2">{userProfile.currentLevel}</div>
+                    <div className="text-sm text-orange-600">Current Level</div>
+                  </div>
+                  <div className="bg-red-50 rounded-lg p-6 text-center">
+                    <div className="text-2xl font-bold text-red-600 mb-2">{userProfile.completedLessons}</div>
+                    <div className="text-sm text-red-600">Courses Completed</div>
+                  </div>
                   <div className="bg-blue-50 rounded-lg p-6 text-center">
-                    <div className="text-2xl font-bold text-blue-600 mb-2">{userProfile.completedLessons}</div>
-                    <div className="text-sm text-blue-600">Lessons Completed</div>
+                    <div className="text-2xl font-bold text-blue-600 mb-2">{progressOverview.totalCompletedLessons}/{progressOverview.totalEnrolledLessons}</div>
+                    <div className="text-sm text-blue-600">Lessens Completed</div>
                   </div>
                   <div className="bg-green-50 rounded-lg p-6 text-center">
                     <div className="text-2xl font-bold text-green-600 mb-2">{userProfile.streak || 0}</div>
@@ -229,7 +222,7 @@ export default function ProfilePage() {
                     <div className="text-sm text-purple-600">Total Study Time</div>
                   </div>
                 </div>
-                
+
                 {userProfile.completedLessons === 0 ? (
                   <div className="text-center py-8">
                     <div className="text-gray-400 mb-4">
@@ -244,25 +237,14 @@ export default function ProfilePage() {
                     </button>
                   </div>
                 ) : (
-                  <div className="bg-white border rounded-lg p-6">
-                    <h3 className="text-lg font-medium text-gray-900 mb-4">Learning History</h3>
-                    <p className="text-gray-500">Your detailed learning history will appear here as you progress.</p>
-                  </div>
+                  <RecentCourses FiAward={FiAward} enrolledCourses={enrolledCourses} />
                 )}
               </div>
             )}
 
             {/* Achievements Tab */}
             {activeTab === 'achievements' && (
-              <div className="text-center py-8">
-                <div className="text-gray-400 mb-4">
-                  <svg className="w-16 h-16 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" />
-                  </svg>
-                </div>
-                <h3 className="text-lg font-medium text-gray-900 mb-2">No achievements yet</h3>
-                <p className="text-gray-500">Complete lessons and reach milestones to earn achievements!</p>
-              </div>
+              <Achievement achievements={achievements} />
             )}
 
             {/* Settings Tab */}
@@ -291,7 +273,7 @@ export default function ProfilePage() {
                     </div>
                   </div>
                 </div>
-                
+
                 <div className="border-t border-gray-200 pt-6">
                   <h3 className="text-lg font-medium text-red-900 mb-4">Danger Zone</h3>
                   <button className="bg-red-600 text-white px-4 py-2 rounded-md hover:bg-red-700 transition-colors">

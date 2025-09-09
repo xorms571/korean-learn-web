@@ -1,179 +1,13 @@
 'use client';
 
 import Link from 'next/link';
-import { useAuth } from '@/hooks/useAuth';
-import { useRouter } from 'next/navigation';
-import React, { useEffect, useState } from 'react';
 import Loading from '@/components/Loading';
-import { collection, getDocs, doc, getDoc, orderBy, query } from 'firebase/firestore';
-import { db } from '@/lib/firebase';
-import { FiAward } from 'react-icons/fi';
-
-// --- Helper Functions ---
-const formatStudyTime = (totalSeconds: number): string => {
-  if (!totalSeconds || totalSeconds <= 0) {
-    return '0m';
-  }
-
-  const hours = Math.floor(totalSeconds / 3600);
-  const minutes = Math.floor((totalSeconds % 3600) / 60);
-
-  if (hours > 0) {
-    return `${hours}h ${minutes}m`;
-  }
-
-  if (minutes > 0) {
-    return `${minutes}m`;
-  }
-
-  return '< 1m';
-};
-
-// --- Interfaces ---
-interface EnrolledCourse {
-  id: string;
-  title: string;
-  description: string;
-  progress: number;
-  isCompleted?: boolean;
-}
-
-interface ProgressOverview {
-  totalCompletedLessons: number;
-  totalEnrolledLessons: number;
-}
-
-interface Achievement {
-  id: string;
-  title: string;
-  description: string;
-  icon: React.ComponentType<{ className?: string }>;
-  unlocked: boolean;
-}
+import Achievement from '@/components/Achievement';
+import { useProgress } from '@/hooks/useProgress';
+import RecentCourses from '@/components/RecentCourses';
 
 export default function DashboardPage() {
-  const { user, userProfile, loading: authLoading } = useAuth();
-  const router = useRouter();
-  const [enrolledCourses, setEnrolledCourses] = useState<EnrolledCourse[]>([]);
-  const [progressOverview, setProgressOverview] = useState<ProgressOverview>({ totalCompletedLessons: 0, totalEnrolledLessons: 0 });
-  const [achievements, setAchievements] = useState<Achievement[]>([]);
-  const [dataLoading, setDataLoading] = useState(true);
-
-  useEffect(() => {
-    if (authLoading) return;
-    if (!user) {
-      router.push('/login');
-      return;
-    }
-
-    const fetchDashboardData = async () => {
-      try {
-        const progressQuery = query(
-          collection(db, 'user_progress', user.uid, 'enrolled_courses'),
-          orderBy('lastAccessed', 'desc')
-        );
-        const progressSnapshot = await getDocs(progressQuery);
-
-        let totalCompleted = 0;
-        let totalEnrolled = 0;
-
-        const coursesData = await Promise.all(progressSnapshot.docs.map(async (progressDoc) => {
-          const courseId = progressDoc.id;
-          const progressData = progressDoc.data();
-
-          const courseDoc = await getDoc(doc(db, 'courses', courseId));
-          if (courseDoc.exists()) {
-            const courseData = courseDoc.data();
-            totalCompleted += progressData.completedLessons?.length || 0;
-            totalEnrolled += courseData.lessonsCount || 0;
-
-            return {
-              id: courseId,
-              title: courseData.title,
-              description: courseData.description,
-              progress: progressData.progress || 0,
-              isCompleted: progressData.isCompleted || false,
-            };
-          }
-          return null;
-        }));
-
-        setEnrolledCourses(coursesData.filter(c => c !== null) as EnrolledCourse[]);
-        setProgressOverview({ totalCompletedLessons: totalCompleted, totalEnrolledLessons: totalEnrolled });
-
-      } catch (error) {
-        console.error("Error fetching dashboard data:", error);
-      } finally {
-        setDataLoading(false);
-      }
-    };
-
-    fetchDashboardData();
-  }, [user, authLoading, router]);
-
-  useEffect(() => {
-    if (!dataLoading && userProfile && progressOverview) {
-      const baseAchievements: Omit<Achievement, 'unlocked'>[] = [
-        // Lesson based
-        { id: 'first-lesson', title: 'First Step', description: 'Complete your first lesson.', icon: FiAward },
-        { id: 'lessons-10', title: 'Lesson Novice', description: 'Complete 10 lessons.', icon: FiAward },
-        { id: 'lessons-50', title: 'Lesson Apprentice', description: 'Complete 50 lessons.', icon: FiAward },
-        { id: 'lessons-100', title: 'Lesson Master', description: 'Complete 100 lessons.', icon: FiAward },
-        // Course based
-        { id: 'first-course', title: 'Course Graduate', description: 'Complete your first course.', icon: FiAward },
-        { id: 'courses-5', title: 'Course Veteran', description: 'Complete 5 courses.', icon: FiAward },
-        // Streak based
-        { id: 'streak-7', title: 'Consistent Learner', description: 'Maintain a 7-day study streak.', icon: FiAward },
-        { id: 'streak-30', title: 'Habit Builder', description: 'Maintain a 30-day study streak.', icon: FiAward },
-        // Time based
-        { id: 'time-10h', title: 'Dedicated Student', description: 'Study for over 10 hours.', icon: FiAward },
-        { id: 'time-50h', title: 'Time Keeper', description: 'Study for over 50 hours.', icon: FiAward },
-        { id: 'time-100h', title: 'Time Lord', description: 'Study for over 100 hours.', icon: FiAward },
-      ];
-
-      const processedAchievements: Achievement[] = baseAchievements.map(ach => {
-        let unlocked = false;
-        switch (ach.id) {
-          case 'first-lesson':
-            if (progressOverview.totalCompletedLessons > 0) unlocked = true;
-            break;
-          case 'lessons-10':
-            if (progressOverview.totalCompletedLessons >= 10) unlocked = true;
-            break;
-          case 'lessons-50':
-            if (progressOverview.totalCompletedLessons >= 50) unlocked = true;
-            break;
-          case 'lessons-100':
-            if (progressOverview.totalCompletedLessons >= 100) unlocked = true;
-            break;
-          case 'first-course':
-            if (enrolledCourses.some(c => c.isCompleted)) unlocked = true;
-            break;
-          case 'courses-5':
-            if (enrolledCourses.filter(c => c.isCompleted).length >= 5) unlocked = true;
-            break;
-          case 'streak-7':
-            if (userProfile.streak >= 7) unlocked = true;
-            break;
-          case 'streak-30':
-            if (userProfile.streak >= 30) unlocked = true;
-            break;
-          case 'time-10h':
-            if (userProfile.totalStudySeconds >= 36000) unlocked = true; // 10h
-            break;
-          case 'time-50h':
-            if (userProfile.totalStudySeconds >= 180000) unlocked = true; // 50h
-            break;
-          case 'time-100h':
-            if (userProfile.totalStudySeconds >= 360000) unlocked = true; // 100h
-            break;
-        }
-        return { ...ach, unlocked };
-      });
-
-      setAchievements(processedAchievements);
-    }
-  }, [dataLoading, userProfile, progressOverview, enrolledCourses]);
+  const { achievements, dataLoading, enrolledCourses, progressOverview, authLoading, user, userProfile, formatStudyTime, FiAward } = useProgress()
 
   const loading = authLoading || dataLoading;
 
@@ -260,48 +94,7 @@ export default function DashboardPage() {
               <h2 className="text-lg font-semibold text-gray-900">Recent Courses</h2>
             </div>
             <div className="p-6">
-              {enrolledCourses.length === 0 ? (
-                <div className="text-center py-8">
-                  <div className="text-gray-400 mb-4">
-                    <svg className="w-16 h-16 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.246 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
-                    </svg>
-                  </div>
-                  <h3 className="text-lg font-medium text-gray-900 mb-2">No courses started yet</h3>
-                  <p className="text-gray-500 mb-4">Start your first Korean lesson to see your progress here.</p>
-                  <Link
-                    href="/courses"
-                    className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700"
-                  >
-                    Browse Courses
-                  </Link>
-                </div>
-              ) : (
-                <ul className="space-y-4">
-                  {enrolledCourses.map(course => (
-                    <li key={course.id} className="p-4 rounded-lg border border-gray-200 hover:shadow-md transition-shadow">
-                      <div className="flex justify-between items-center mb-2">
-                        <h3 className="font-semibold text-gray-800">{course.title}</h3>
-                        {course.isCompleted && (
-                          <span className="flex items-center gap-1 text-xs bg-yellow-400 text-white font-bold px-2 py-1 rounded-md">
-                            <FiAward /> Completed
-                          </span>
-                        )}
-                      </div>
-                      <div className="flex justify-between text-sm text-gray-600 mb-2">
-                        <span>Progress</span>
-                        <span>{course.progress}%</span>
-                      </div>
-                      <div className="w-full bg-gray-200 rounded-full h-2 mb-4">
-                        <div className={`${course.isCompleted ? 'bg-yellow-400' : 'bg-blue-600'} h-2 rounded-full`} style={{ width: `${course.progress}%` }}></div>
-                      </div>
-                      <Link href={`/courses/${course.id}`} className="text-blue-600 hover:underline text-sm font-medium">
-                        {course.isCompleted ? 'Review Course' : 'Continue Learning'}
-                      </Link>
-                    </li>
-                  ))}
-                </ul>
-              )}
+              <RecentCourses enrolledCourses={enrolledCourses} FiAward={FiAward} />
             </div>
           </div>
 
@@ -311,40 +104,7 @@ export default function DashboardPage() {
               <h2 className="text-lg font-semibold text-gray-900">Achievements</h2>
             </div>
             <div className="p-6">
-              {achievements.length > 0 ? (
-                <ul className="grid grid-cols-2 sm:grid-cols-3 gap-4">
-                  {achievements.map(ach => {
-                    const Icon = ach.icon;
-                    return (
-                      <li
-                        key={ach.id}
-                        className={`flex flex-col items-center text-center p-3 rounded-lg transition-all ${ach.unlocked ? 'bg-yellow-50 border border-yellow-200' : 'bg-gray-50'
-                          }`}
-                      >
-                        <div className={`p-2 rounded-full ${ach.unlocked ? 'bg-yellow-100' : 'bg-gray-200'}`}>
-                          <Icon className={`w-8 h-8 ${ach.unlocked ? 'text-yellow-500' : 'text-gray-400'}`} />
-                        </div>
-                        <h4
-                          className={`mt-2 font-semibold text-sm ${ach.unlocked ? 'text-gray-800' : 'text-gray-500'}`}
-                        >
-                          {ach.title}
-                        </h4>
-                        <p className="text-xs text-gray-500 mt-1">{ach.description}</p>
-                      </li>
-                    );
-                  })}
-                </ul>
-              ) : (
-                <div className="text-center py-8">
-                  <div className="text-gray-400 mb-4">
-                    <svg className="w-16 h-16 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" />
-                    </svg>
-                  </div>
-                  <h3 className="text-lg font-medium text-gray-900 mb-2">No achievements yet</h3>
-                  <p className="text-gray-500">Complete lessons and reach milestones to earn achievements!</p>
-                </div>
-              )}
+              <Achievement achievements={achievements} />
             </div>
           </div>
         </div>

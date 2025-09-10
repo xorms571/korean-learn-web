@@ -35,6 +35,9 @@ export default function Header() {
             <Link href="/dashboard" className="text-gray-700 hover:text-blue-600 px-3 py-2 rounded-md text-sm font-medium">
               Dashboard
             </Link>
+            <Link href="/help" className="text-gray-700 hover:text-blue-600 px-3 py-2 rounded-md text-sm font-medium">
+              Help
+            </Link>
           </nav>
 
           {/* Auth Buttons / User Menu */}
@@ -105,6 +108,9 @@ export default function Header() {
               </Link>
               <Link href="/dashboard" className="text-gray-700 hover:text-blue-600 block md:px-3 py-2 rounded-md text-base font-medium">
                 Dashboard
+              </Link>
+              <Link href="/help" className="text-gray-700 hover:text-blue-600 block md:px-3 py-2 rounded-md text-base font-medium">
+                Help
               </Link>
               <div className="pt-2 pb-3 border-t border-gray-200">
                 {user ? (

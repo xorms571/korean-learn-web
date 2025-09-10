@@ -1,3 +1,5 @@
+import Link from 'next/link';
+
 export default function Footer() {
   return (
     <footer className="bg-gray-800 text-white">
@@ -18,9 +20,9 @@ export default function Footer() {
           <div>
             <h4 className="text-md font-semibold mb-4">Quick Links</h4>
             <ul className="space-y-2">
-              <li><a href="/courses" className="text-gray-300 hover:text-white">Courses</a></li>
-              <li><a href="/community" className="text-gray-300 hover:text-white">Community</a></li>
-              <li><a href="/dashboard" className="text-gray-300 hover:text-white">Dashboard</a></li>
+              <li><Link href="/courses" className="text-gray-300 hover:text-white">Courses</Link></li>
+              <li><Link href="/community" className="text-gray-300 hover:text-white">Community</Link></li>
+              <li><Link href="/dashboard" className="text-gray-300 hover:text-white">Dashboard</Link></li>
             </ul>
           </div>
 
@@ -28,9 +30,9 @@ export default function Footer() {
           <div>
             <h4 className="text-md font-semibold mb-4">Support</h4>
             <ul className="space-y-2">
-              <li><a href="/help" className="text-gray-300 hover:text-white">Help</a></li>
-              <li><a href="/contact" className="text-gray-300 hover:text-white">Contact</a></li>
-              <li><a href="/faq" className="text-gray-300 hover:text-white">FAQ</a></li>
+              <li><Link href="/help" className="text-gray-300 hover:text-white">Help</Link></li>
+              <li><Link href="/contact" className="text-gray-300 hover:text-white">Contact</Link></li>
+              <li><Link href="/faq" className="text-gray-300 hover:text-white">FAQ</Link></li>
             </ul>
           </div>
         </div>

@@ -85,18 +85,22 @@ export default function PostDetailPage({ params }: { params: Promise<{ id: strin
   return (
     <div className="min-h-screen bg-gray-50 py-8">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="bg-white rounded-lg shadow p-6 mb-6">
-          <h1 className="text-3xl font-bold text-gray-900 mb-4">{post.title}</h1>
-          <div className="flex items-center text-sm text-gray-600 mb-4">
-            <img src={authorAvatar} alt={authorName} className="w-8 h-8 rounded-full mr-2" />
-            <span>By {authorName}</span>
-            <span className="mx-2">•</span>
-            <span>{new Date(post.createdAt?.toDate()).toLocaleString()}</span>
-            <span className="inline-block bg-blue-100 text-blue-700 px-2 py-1 rounded-full text-xs font-medium ml-4">
-              #{post.category}
-            </span>
+        <div className="bg-white rounded-lg md:shadow md:p-6 mb-6">
+          <h1 className="text-2xl md:text-3xl font-bold text-gray-900 mb-4 truncate">{post.title}</h1>
+          <div className="flex flex-col gap-2 md:gap-0 md:flex-row md:items-center items-start text-sm text-gray-600 mb-4">
+            <div className='flex items-center'>
+              <img src={authorAvatar} alt={authorName} className="w-8 h-8 rounded-full mr-2" />
+              <span>By {authorName}</span>
+            </div>
+            <span className="mx-2 hidden md:inline-block">•</span>
+            <div className='flex justify-between items-center w-full md:w-auto'>
+              <span>{new Date(post.createdAt?.toDate()).toLocaleString()}</span>
+              <span className="inline-block bg-blue-100 text-blue-700 px-2 py-1 rounded-full text-xs font-medium md:ml-4">
+                #{post.category}
+              </span>
+            </div>
           </div>
-          <div className="prose max-w-none mb-6">
+          <div className="prose max-w-none mb-6 border-t">
             <p className='whitespace-pre-wrap my-10 text-slate-600'>{post.content}</p>
           </div>
           <div className="flex items-center gap-4">

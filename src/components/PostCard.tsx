@@ -3,6 +3,9 @@
 import Link from 'next/link';
 import { Post } from '@/types/post';
 import { UserProfile } from '@/hooks/useAuth';
+import { useState, useEffect } from 'react';
+import { collection, onSnapshot } from 'firebase/firestore';
+import { db } from '@/lib/firebase';
 
 interface PostCardProps {
   post: Post;
@@ -12,6 +15,18 @@ interface PostCardProps {
 export default function PostCard({ post, author }: PostCardProps) {
   const authorName = author?.displayName || post.authorName || 'Anonymous';
   const authorAvatar = author?.photoURL || post.authorAvatar || '/default-avatar.png';
+  const [commentCount, setCommentCount] = useState(post.commentCount || 0);
+
+  useEffect(() => {
+    if (!post.id) return;
+
+    const commentsRef = collection(db, 'posts', post.id, 'comments');
+    const unsubscribe = onSnapshot(commentsRef, (snapshot) => {
+      setCommentCount(snapshot.size);
+    });
+
+    return () => unsubscribe();
+  }, [post.id]);
 
   return (
     <Link href={`/community/${post.id}`} className="block hover:bg-gray-50 p-4 border-b border-gray-200">
@@ -29,7 +44,7 @@ export default function PostCard({ post, author }: PostCardProps) {
             #{post.category}
           </span>
           <span className="mr-4">{post.likes.length} Likes</span>
-          <span>{post.commentCount} Comments</span>
+          <span>{commentCount} Comments</span>
         </div>
     </Link>
   );

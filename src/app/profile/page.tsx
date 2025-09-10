@@ -22,7 +22,7 @@ export default function ProfilePage() {
   const [photoFile, setPhotoFile] = useState<File | null>(null);
   const [photoPreview, setPhotoPreview] = useState<string | null>(null);
   const [isSaving, setIsSaving] = useState(false);
-  const { achievements, enrolledCourses, progressOverview, formatStudyTime, FiAward } = useProgress()
+  const { achievements, enrolledCourses, progressOverview, formatStudyTime, FiAward } = useProgress();
 
   useEffect(() => {
     if (!loading && !user) {
@@ -106,7 +106,7 @@ export default function ProfilePage() {
                 accept="image/*"
                 onChange={handlePhotoChange}
               />
-              <label htmlFor="photoInput" className="cursor-pointer group relative block">
+              <label htmlFor="photoInput" className="cursor-pointer group relative inline-block">
                 {photoPreview ? (
                   <img
                     src={photoPreview}

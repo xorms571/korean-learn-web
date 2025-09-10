@@ -306,7 +306,7 @@ export default function CourseDetailPage({ params }: { params: Promise<{ id: str
                     </main>
                     <aside className="lg:col-span-1">
                         <div className="sticky top-8">
-                            <div className="bg-white rounded-lg shadow-md p-6">
+                            <div className="md:bg-white rounded-lg md:shadow-md md:p-6">
                                 <h3 className="text-xl font-bold text-gray-800 mb-4">Course Lessons</h3>
                                 <div className="mb-4">
                                     <div className="flex justify-between mb-1">

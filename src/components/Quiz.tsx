@@ -121,7 +121,7 @@ export default function Quiz({ lessons, courseId, onQuizFinish }: QuizProps) {
     const [quizFinished, setQuizFinished] = useState(false);
     const [finalMessage, setFinalMessage] = useState("");
 
-    type CharObject = { char: string; id: number };
+    type CharObject = { char: string; id: number; status?: 'correct' | 'incorrect' };
     const [builtSentence, setBuiltSentence] = useState<CharObject[]>([]);
     const [availableChars, setAvailableChars] = useState<CharObject[]>([]);
 
@@ -193,7 +193,17 @@ export default function Quiz({ lessons, courseId, onQuizFinish }: QuizProps) {
             isCorrect = userAnswer === currentQuestion.correctAnswer;
         } else { // sentence-scramble
             userAnswer = builtSentence.map(c => c.char).join('');
-            isCorrect = userAnswer === currentQuestion.correctAnswer.replace(/\s/g, '');
+            const correctAnswerNoSpaces = currentQuestion.correctAnswer.replace(/\s/g, '');
+            isCorrect = userAnswer === correctAnswerNoSpaces;
+
+            if (!isCorrect) {
+                const correctAnswerChars = correctAnswerNoSpaces.split('');
+                const feedbackSentence = builtSentence.map((charObj, index) => ({
+                    ...charObj,
+                    status: (index < correctAnswerChars.length && charObj.char === correctAnswerChars[index] ? 'correct' : 'incorrect') as 'correct' | 'incorrect'
+                }));
+                setBuiltSentence(feedbackSentence);
+            }
         }
 
         setSelectedAnswer(userAnswer);
@@ -353,13 +363,28 @@ export default function Quiz({ lessons, courseId, onQuizFinish }: QuizProps) {
             ) : (
                 <div className="mb-6">
                     <div className={`p-4 mb-4 border-2 rounded-lg min-h-[6rem] flex flex-wrap gap-2 items-center justify-center text-lg font-semibold ${isAnswerChecked ? (isCorrectAnswer() ? 'border-green-500' : 'border-red-500') : 'border-gray-300'}`}>
-                        {builtSentence.map((charObj) => (
-                            <button key={charObj.id} onClick={() => handleCharDeselect(charObj)} disabled={isAnswerChecked} className="p-3 bg-blue-100 border border-blue-300 rounded-md text-blue-800">
-                                {charObj.char}
-                            </button>
-                        ))}
+                        {builtSentence.map((charObj) => {
+                            let buttonClass = "p-3 bg-blue-100 border border-blue-300 rounded-md text-blue-800";
+                            if (isAnswerChecked && !isCorrectAnswer() && charObj.status) {
+                                buttonClass = charObj.status === 'correct'
+                                    ? "p-3 bg-green-100 border border-green-300 rounded-md text-green-800"
+                                    : "p-3 bg-red-100 border border-red-300 rounded-md text-red-800";
+                            }
+
+                            return (
+                                <button key={charObj.id} onClick={() => handleCharDeselect(charObj)} disabled={isAnswerChecked} className={buttonClass}>
+                                    {charObj.char}
+                                </button>
+                            );
+                        })}
                         {builtSentence.length === 0 && !isAnswerChecked && <span className="text-gray-400">Click characters below</span>}
                     </div>
+                    {isAnswerChecked && !isCorrectAnswer() && currentQuestion.type === 'sentence-scramble' && (
+                        <div className="text-center p-2 my-2 rounded-lg bg-gray-100">
+                            <p className="text-sm text-gray-600">Correct Answer:</p>
+                            <p className="text-lg font-bold text-green-700">{currentQuestion.correctAnswer}</p>
+                        </div>
+                    )}
                     <div className="flex flex-wrap gap-2 justify-center mb-4">
                         {availableChars.map((charObj) => (
                             <button key={charObj.id} onClick={() => handleCharSelect(charObj)} disabled={isAnswerChecked} className="p-3 bg-gray-100 border border-gray-300 rounded-md hover:bg-gray-200 disabled:opacity-50">

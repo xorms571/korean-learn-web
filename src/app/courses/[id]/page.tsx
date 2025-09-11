@@ -9,6 +9,7 @@ import Loading from '@/components/Loading';
 import Comment from '@/components/Comment';
 import Quiz from '@/components/Quiz';
 import { FiVolume2, FiChevronLeft, FiChevronRight, FiCheckCircle, FiAward } from 'react-icons/fi';
+import { useSpeech } from '@/hooks/useSpeech';
 
 // --- Helper function to get date in YYYY-MM-DD format ---
 const getYYYYMMDD = (date: Date) => {
@@ -25,6 +26,7 @@ export default function CourseDetailPage({ params }: { params: Promise<{ id: str
     const { id } = use(params);
     const router = useRouter();
     const { user, userProfile, loading: authLoading } = useAuth();
+    const { speak } = useSpeech();
 
     // --- State Management ---
     const [course, setCourse] = useState<Course | null>(null);
@@ -92,7 +94,7 @@ export default function CourseDetailPage({ params }: { params: Promise<{ id: str
                         if (response.ok) {
                             const data = await response.json();
                             if (data.imageUrl) {
-                                setExampleImageUrls(prev => ({...prev, [key]: data.imageUrl}));
+                                setExampleImageUrls(prev => ({ ...prev, [key]: data.imageUrl }));
                             }
                         }
                     } catch (error) {
@@ -117,7 +119,7 @@ export default function CourseDetailPage({ params }: { params: Promise<{ id: str
             if (elapsedSeconds > 5) { // Min duration to count as a session
                 const userRef = doc(db, 'users', user.uid);
                 const today = getYYYYMMDD(new Date());
-                
+
                 const updates: any = {
                     totalStudySeconds: increment(elapsedSeconds)
                 };
@@ -127,7 +129,7 @@ export default function CourseDetailPage({ params }: { params: Promise<{ id: str
                     updates.streak = userProfile.lastActivityDate === yesterday ? increment(1) : 1;
                     updates.lastActivityDate = today;
                 }
-                
+
                 updateDoc(userRef, updates).catch(console.error);
             }
         };
@@ -177,23 +179,6 @@ export default function CourseDetailPage({ params }: { params: Promise<{ id: str
             setIsInitialLoad(false);
         }
     }, [currentLessonIndex, loading, isInitialLoad, updateProgress]);
-
-    // --- Event Handlers ---
-    const speakText = (text: string) => {
-        if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
-            const utterance = new SpeechSynthesisUtterance(text);
-            utterance.lang = 'ko-KR';
-            const voices = speechSynthesis.getVoices();
-            const koreanVoice = voices.find(voice => voice.lang === 'ko-KR');
-            if (koreanVoice) {
-                utterance.voice = koreanVoice;
-            }
-            speechSynthesis.cancel();
-            speechSynthesis.speak(utterance);
-        } else {
-            alert('Your browser does not support Web Speech API.');
-        }
-    };
 
     const handleSetLesson = (index: number) => {
         setIsQuizActive(false);
@@ -256,7 +241,7 @@ export default function CourseDetailPage({ params }: { params: Promise<{ id: str
                                                 {Object.entries(currentLesson.exampleSentences).map(([key, ex]) => (
                                                     <div key={key} className="bg-gray-50 rounded-lg p-2 md:p-4 flex items-center md:items-start gap-4 transition-shadow hover:shadow-lg">
                                                         <div className='w-20 h-20 md:w-32 md:h-32 bg-slate-100 rounded-md overflow-hidden flex justify-center items-center'>
-                                                            {exampleImageUrls[key] ? 
+                                                            {exampleImageUrls[key] ?
                                                                 <img src={exampleImageUrls[key]} alt={ex.korean} className="w-full h-full object-cover fade-in-image" /> :
                                                                 <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
                                                             }
@@ -264,7 +249,7 @@ export default function CourseDetailPage({ params }: { params: Promise<{ id: str
                                                         <div className="flex-1">
                                                             <div className="flex items-center justify-between">
                                                                 <p className="text-lg font-semibold text-gray-800">{ex.korean}</p>
-                                                                <button onClick={() => speakText(ex.korean)} className="p-2 rounded-full text-gray-600 hover:bg-gray-200 transition-colors" aria-label="Play pronunciation">
+                                                                <button onClick={() => speak(ex.korean)} className="p-2 rounded-full text-gray-600 hover:bg-gray-200 transition-colors" aria-label="Play pronunciation">
                                                                     <FiVolume2 size={20} />
                                                                 </button>
                                                             </div>

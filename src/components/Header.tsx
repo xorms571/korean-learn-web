@@ -29,6 +29,9 @@ export default function Header() {
             <Link href="/courses" className="text-gray-700 hover:text-blue-600 px-3 py-2 rounded-md text-sm font-medium">
               Courses
             </Link>
+            <Link href="/learn/hangeul" className="text-gray-700 hover:text-blue-600 px-3 py-2 rounded-md text-sm font-medium">
+              Learn Hangeul
+            </Link>
             <Link href="/community" className="text-gray-700 hover:text-blue-600 px-3 py-2 rounded-md text-sm font-medium">
               Community
             </Link>
@@ -102,6 +105,9 @@ export default function Header() {
             <div className="pt-2 pb-3 space-y-1 md:px-2">
               <Link href="/courses" className="text-gray-700 hover:text-blue-600 block md:px-3 py-2 rounded-md text-base font-medium">
                 Courses
+              </Link>
+              <Link href="/learn/hangeul" className="text-gray-700 hover:text-blue-600 block md:px-3 py-2 rounded-md text-base font-medium">
+                Learn Hangeul
               </Link>
               <Link href="/community" className="text-gray-700 hover:text-blue-600 block md:px-3 py-2 rounded-md text-base font-medium">
                 Community

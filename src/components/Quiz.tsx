@@ -10,6 +10,7 @@ import type { Lesson, QuizQuestion, CharObject } from '@/types/quiz';
 import QuizCompletion from './quiz/QuizCompletion';
 import MultipleChoiceQuestion from './quiz/MultipleChoiceQuestion';
 import SentenceScrambleQuestion from './quiz/SentenceScrambleQuestion';
+import { useSpeech } from '@/hooks/useSpeech';
 
 interface QuizProps {
     lessons: Lesson[];
@@ -19,6 +20,7 @@ interface QuizProps {
 
 export default function Quiz({ lessons, courseId, onQuizFinish }: QuizProps) {
     const { user } = useAuth();
+    const { speak } = useSpeech();
     const [quizQuestions, setQuizQuestions] = useState<QuizQuestion[]>([]);
     const [currentQuizIndex, setCurrentQuizIndex] = useState(0);
     const [selectedAnswer, setSelectedAnswer] = useState<string | null>(null);
@@ -54,16 +56,6 @@ export default function Quiz({ lessons, courseId, onQuizFinish }: QuizProps) {
             setIsAnswerChecked(false);
         }
     }, [currentQuestion]);
-
-    const handlePlayAudio = (text: string) => {
-        if ('speechSynthesis' in window) {
-            window.speechSynthesis.cancel();
-            const utterance = new SpeechSynthesisUtterance(text);
-            utterance.lang = 'ko-KR';
-            utterance.rate = 0.9;
-            window.speechSynthesis.speak(utterance);
-        }
-    };
 
     const handleCharSelect = (charObj: CharObject) => {
         if (isAnswerChecked) return;
@@ -166,7 +158,7 @@ export default function Quiz({ lessons, courseId, onQuizFinish }: QuizProps) {
                         <h3 className="text-2xl font-bold text-gray-800">{currentQuestion.questionText}</h3>
                         {(currentQuestion.type === 'sentence-scramble' || /[\u3131-\uD79D]/.test(currentQuestion.questionText)) && (
                             <button
-                                onClick={() => handlePlayAudio(currentQuestion.type === 'sentence-scramble' ? currentQuestion.correctAnswer : currentQuestion.questionText)}
+                                onClick={() => speak(currentQuestion.type === 'sentence-scramble' ? currentQuestion.correctAnswer : currentQuestion.questionText)}
                                 className="p-2 rounded-full hover:bg-gray-200 transition-colors"
                                 aria-label="Listen to the sentence"
                             >
@@ -187,7 +179,7 @@ export default function Quiz({ lessons, courseId, onQuizFinish }: QuizProps) {
                     selectedAnswer={selectedAnswer}
                     isAnswerChecked={isAnswerChecked}
                     onAnswerSelect={setSelectedAnswer}
-                    handlePlayAudio={handlePlayAudio}
+                    handlePlayAudio={speak}
                 />
             ) : (
                 <SentenceScrambleQuestion

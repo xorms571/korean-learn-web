@@ -181,7 +181,7 @@ export default function CoursesPage() {
         router.push('/login');
         return;
     } */
-    router.push(`/courses/${courseId}`);
+    router.push(`/courses/sentence/${courseId}`);
     if (!user) return;
     const progressRef = doc(db, 'user_progress', user.uid, 'enrolled_courses', courseId);
 

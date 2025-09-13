@@ -6,6 +6,8 @@ import { useAuth } from '@/hooks/useAuth';
 
 export default function Header() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [isCoursesMenuOpen, setCoursesMenuOpen] = useState(false);
+  const [isMobileCoursesMenuOpen, setMobileCoursesMenuOpen] = useState(false);
   const { user, userProfile, logout } = useAuth();
 
   const handleLogout = async () => {
@@ -25,13 +27,34 @@ export default function Header() {
           </div>
 
           {/* Desktop Navigation */}
-          <nav className="hidden md:flex space-x-8">
-            <Link href="/courses" className="text-gray-700 hover:text-blue-600 px-3 py-2 rounded-md text-sm font-medium">
-              Courses
-            </Link>
-            <Link href="/learn/hangeul" className="text-gray-700 hover:text-blue-600 px-3 py-2 rounded-md text-sm font-medium">
-              Learn Hangeul
-            </Link>
+          <nav className="hidden md:flex items-center space-x-8">
+            <div
+              className="relative"
+              onMouseEnter={() => setCoursesMenuOpen(true)}
+              onMouseLeave={() => setCoursesMenuOpen(false)}
+            >
+              <button className="text-gray-700 hover:text-blue-600 px-3 py-2 rounded-md text-sm font-medium flex items-center">
+                Courses
+                <svg className={`w-4 h-4 ml-1 transform transition-transform ${isCoursesMenuOpen && 'rotate-180'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                </svg>
+              </button>
+              {isCoursesMenuOpen && (
+                <div className="absolute z-10 top-full pt-2 w-48">
+                  <div className="bg-white rounded-md shadow-lg py-1">
+                    <Link href="/courses/sentence" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                      Learn Sentences
+                    </Link>
+                    <Link href="/courses/word" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                      Learn Words
+                    </Link>
+                    <Link href="/courses/hangeul" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                      Learn Hangeul
+                    </Link>
+                  </div>
+                </div>
+              )}
+            </div>
             <Link href="/community" className="text-gray-700 hover:text-blue-600 px-3 py-2 rounded-md text-sm font-medium">
               Community
             </Link>
@@ -103,12 +126,30 @@ export default function Header() {
         {isMenuOpen && (
           <div className="md:hidden">
             <div className="pt-2 pb-3 space-y-1 md:px-2">
-              <Link href="/courses" className="text-gray-700 hover:text-blue-600 block md:px-3 py-2 rounded-md text-base font-medium">
-                Courses
-              </Link>
-              <Link href="/learn/hangeul" className="text-gray-700 hover:text-blue-600 block md:px-3 py-2 rounded-md text-base font-medium">
-                Learn Hangeul
-              </Link>
+              <div>
+                <button
+                  onClick={() => setMobileCoursesMenuOpen(!isMobileCoursesMenuOpen)}
+                  className="w-full text-left text-gray-700 hover:text-blue-600 md:px-3 py-2 rounded-md text-base font-medium flex justify-between items-center"
+                >
+                  <span>Courses</span>
+                  <svg className={`w-5 h-5 transform transition-transform ${isMobileCoursesMenuOpen && 'rotate-180'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                  </svg>
+                </button>
+                {isMobileCoursesMenuOpen && (
+                  <div className="pl-4">
+                    <Link href="/courses/sentence" onClick={() => setIsMenuOpen(false)} className="text-gray-700 hover:text-blue-600 block md:px-3 py-2 rounded-md text-base font-medium">
+                      Learn Sentences
+                    </Link>
+                    <Link href="/courses/word" onClick={() => setIsMenuOpen(false)} className="text-gray-700 hover:text-blue-600 block md:px-3 py-2 rounded-md text-base font-medium">
+                      Learn Words
+                    </Link>
+                    <Link href="/courses/hangeul" onClick={() => setIsMenuOpen(false)} className="text-gray-700 hover:text-blue-600 block md:px-3 py-2 rounded-md text-base font-medium">
+                      Learn Hangeul
+                    </Link>
+                  </div>
+                )}
+              </div>
               <Link href="/community" className="text-gray-700 hover:text-blue-600 block md:px-3 py-2 rounded-md text-base font-medium">
                 Community
               </Link>

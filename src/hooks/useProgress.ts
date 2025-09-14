@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { collection, doc, getDoc, getDocs, orderBy, query, limit, updateDoc } from "firebase/firestore";
 import { useAuth } from "@/hooks/useAuth";
@@ -13,6 +12,7 @@ export interface EnrolledCourse {
     progress: number;
     isCompleted: boolean;
     category: string;
+    level: string;
 }
 
 export interface ProgressOverview {
@@ -98,6 +98,7 @@ export const useProgress = () => {
                                 progress: progressData.progress || 0,
                                 isCompleted: progressData.isCompleted || false,
                                 category: courseData.category,
+                                level: courseData.level,
                             };
                         }
                         return null;

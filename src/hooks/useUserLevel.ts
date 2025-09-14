@@ -1,41 +1,27 @@
-
 import { useEffect } from 'react';
-import { doc, getDoc, setDoc } from 'firebase/firestore';
+import { doc, setDoc } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
-import { useAuth } from '@/hooks/useAuth';
+import { useAuth, UserProfile } from '@/hooks/useAuth';
+import { EnrolledCourse } from '@/hooks/useProgress';
 
-interface Course {
-  id: string;
-  level: string;
-  isCompleted?: boolean;
-}
-
-export function useUserLevel(coursesWithProgress: Course[]) {
+export function useUserLevel(enrolledCourses: EnrolledCourse[], userProfile: UserProfile | null) {
     const { user } = useAuth();
 
     useEffect(() => {
         const updateUserLevel = async () => {
-            if (!user || coursesWithProgress.length === 0) {
+            if (!user || !userProfile || enrolledCourses.length === 0) {
                 return;
             }
 
             try {
                 const userRef = doc(db, 'users', user.uid);
-                const userSnap = await getDoc(userRef);
-
-                if (!userSnap.exists()) {
-                    console.log("User document does not exist, cannot update level.");
-                    return;
-                }
-
-                const userData = userSnap.data();
-                const currentLevel = userData?.currentLevel || 'Beginner 0';
+                const currentLevel = userProfile.currentLevel;
 
                 const LEVEL_ORDER = ['beginner', 'intermediate', 'advanced'];
                 const levelParts = currentLevel.toLowerCase().split(' ');
                 const currentMainLevel = levelParts[0];
 
-                const coursesForCurrentLevel = coursesWithProgress.filter(
+                const coursesForCurrentLevel = enrolledCourses.filter(
                     (course) => course.level.toLowerCase() === currentMainLevel
                 );
 
@@ -43,11 +29,8 @@ export function useUserLevel(coursesWithProgress: Course[]) {
                     return;
                 }
 
-                const completedCourses = coursesForCurrentLevel.filter(
-                    (course) => course.isCompleted
-                ).length;
-
-                const completionPercentage = (completedCourses / coursesForCurrentLevel.length) * 100;
+                const totalProgress = coursesForCurrentLevel.reduce((sum, course) => sum + course.progress, 0);
+                const completionPercentage = totalProgress / coursesForCurrentLevel.length;
 
                 let newLevel;
 
@@ -75,5 +58,5 @@ export function useUserLevel(coursesWithProgress: Course[]) {
         };
 
         updateUserLevel();
-    }, [user, coursesWithProgress]);
+    }, [user, userProfile, enrolledCourses]);
 }

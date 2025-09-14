@@ -1,3 +1,4 @@
+
 'use client';
 
 import Link from 'next/link';
@@ -5,9 +6,11 @@ import Loading from '@/components/Loading';
 import Achievement from '@/components/Achievement';
 import { useProgress } from '@/hooks/useProgress';
 import RecentCourses from '@/components/RecentCourses';
+import { useUserLevel } from '@/hooks/useUserLevel';
 
 export default function DashboardPage() {
   const { achievements, dataLoading, enrolledCourses, progressOverview, authLoading, user, userProfile, formatStudyTime, FiAward } = useProgress()
+  useUserLevel(enrolledCourses, userProfile);
 
   const loading = authLoading || dataLoading;
 

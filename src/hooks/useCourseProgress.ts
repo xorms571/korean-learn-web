@@ -1,3 +1,4 @@
+
 import { useCallback, useEffect, useState, Dispatch, SetStateAction } from 'react';
 import { doc, setDoc, arrayUnion, serverTimestamp } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
@@ -29,7 +30,7 @@ export function useCourseProgress(course: Course | null, currentLesson: Lesson |
                     ...prevProgress,
                     completedLessons: updatedCompletedLessons,
                     lastCompletedLesson: lessonNumber,
-                    progress: Math.round((updatedCompletedLessons.length / course.lessonsCount) * 100),
+                    progress: Math.round(((updatedCompletedLessons.length / course.lessonsCount) * 100) * 10) / 10,
                 };
 
                 setDoc(progressRef, {

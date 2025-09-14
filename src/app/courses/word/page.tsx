@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useMemo } from 'react';
@@ -5,7 +6,6 @@ import Loading from '@/components/Loading';
 import CoursesList from '@/components/CoursesList';
 import { useCourses } from '@/hooks/useCourses';
 import { useCourseImages } from '@/hooks/useCourseImages';
-import { useUserLevel } from '@/hooks/useUserLevel';
 
 export default function WordCoursesPage() {
   const { authLoading, courses, userProgress, courseLoading, handleStartOrContinue } = useCourses('word');
@@ -20,8 +20,6 @@ export default function WordCoursesPage() {
       isCompleted: userProgress[course.id]?.isCompleted ?? false,
     }));
   }, [courses, userProgress]);
-
-  useUserLevel(coursesWithProgress);
 
   const levels = [
     { value: 'all', label: 'All Levels' },

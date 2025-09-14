@@ -27,7 +27,7 @@ export default function Header() {
           </div>
 
           {/* Desktop Navigation */}
-          <nav className="hidden md:flex items-center space-x-8">
+          <nav className="hidden md:flex items-center">
             <div
               className="relative"
               onMouseEnter={() => setCoursesMenuOpen(true)}
@@ -84,7 +84,7 @@ export default function Header() {
                       </svg>
                     </div>
                   )}
-                  <span className="text-sm font-medium">{userProfile?.displayName || user.email}</span>
+                  <span className="text-sm font-medium max-w-10 truncate">{userProfile?.displayName || user.email}</span>
                 </Link>
                 <button
                   onClick={handleLogout}

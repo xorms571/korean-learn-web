@@ -1,5 +1,19 @@
+
 import { SetStateAction } from "react";
-import { IconType } from "react-icons";
+import { FiAward } from 'react-icons/fi';
+
+interface Course {
+    id: string;
+    title: string;
+    description: string;
+    level: string;
+    category: string;
+    duration: string;
+    lessons: number;
+    image: string;
+    progress: number;
+    isCompleted?: boolean;
+}
 
 interface type {
     selectedLevel: string;
@@ -13,30 +27,21 @@ interface type {
         value: string;
         label: string;
     }[];
-    filteredCourses: {
-        progress: number;
-        isCompleted: boolean;
-        id: string;
-        title: string;
-        description: string;
-        level: string;
-        category: string;
-        duration: string;
-        lessons: number;
-        image: string;
-    }[];
+    courses: Course[];
     courseImageUrls: Record<string, string>;
-    FiAward: IconType;
     getLevelLabel: (level: string) => string;
     getCategoryLabel: (category: string) => string;
     handleStartOrContinue: (courseId: string) => Promise<void>;
-    setSelectedCategory: (value: SetStateAction<string>) => void
+    setSelectedCategory: (value: SetStateAction<string>) => void;
+    title: string;
+    description: string;
 }
 export default function CoursesList({
-    FiAward,
+    title, 
+    description,
     categories,
     courseImageUrls,
-    filteredCourses,
+    courses,
     getCategoryLabel,
     getLevelLabel,
     levels,
@@ -45,12 +50,19 @@ export default function CoursesList({
     setSelectedLevel,
     handleStartOrContinue,
     setSelectedCategory }: type) {
+
+    const filteredCourses = courses.filter(course => {
+        if (selectedLevel !== 'all' && course.level.toLowerCase() !== selectedLevel) return false;
+        if (selectedCategory !== 'all' && course.category.toLowerCase() !== selectedCategory) return false;
+        return true;
+    });
+
     return (
         <div className="min-h-screen bg-gray-50 py-8">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 <div className="md:text-center mb-12">
-                    <h1 className="text-4xl font-bold text-gray-900 mb-4">Korean Courses</h1>
-                    <p className="text-xl text-gray-600">Improve your Korean skills with systematically structured learning courses</p>
+                    <h1 className="text-4xl font-bold text-gray-900 mb-4">{title}</h1>
+                    <p className="text-xl text-gray-600">{description}</p>
                 </div>
 
                 <div className="md:bg-white rounded-lg md:shadow md:p-6 mb-8">

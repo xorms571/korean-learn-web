@@ -10,12 +10,12 @@ import { useCourse } from '@/hooks/useCourse';
 import { useStudyTracker } from '@/hooks/useStudyTracker';
 import { useCourseProgress } from '@/hooks/useCourseProgress';
 
-export default function SentenceCourseDetailPage({ params }: { params: Promise<{ id: string }> }) {
+export default function WordCourseDetailPage({ params }: { params: Promise<{ id: string }> }) {
     const { id } = use(params);
     const router = useRouter();
     const { user, userProfile, loading: authLoading } = useAuth();
 
-    const { course, courseProgress, loading: courseLoading, setCourseProgress } = useCourse(id, user, 'sentence');
+    const { course, courseProgress, loading: courseLoading, setCourseProgress } = useCourse(id, user, 'word');
     const [currentLessonIndex, setCurrentLessonIndex] = useState(0);
     const [exampleImageUrls, setExampleImageUrls] = useState<Record<string, string>>({});
     const [isQuizActive, setIsQuizActive] = useState(false);
@@ -27,7 +27,7 @@ export default function SentenceCourseDetailPage({ params }: { params: Promise<{
 
     useEffect(() => {
         if (!courseLoading && !course) {
-            router.push('/courses/sentence');
+            router.push('/courses/word');
         }
     }, [course, courseLoading, router]);
 

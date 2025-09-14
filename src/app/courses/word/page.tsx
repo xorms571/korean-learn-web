@@ -29,7 +29,7 @@ interface UserProgress {
   lastCompletedLesson?: number | null;
 }
 
-export default function SentenceCoursesPage() {
+export default function WordCoursesPage() {
   const { user, loading: authLoading } = useAuth();
   const [courses, setCourses] = useState<Course[]>([]);
   const [userProgress, setUserProgress] = useState<Record<string, UserProgress>>({});
@@ -49,7 +49,7 @@ export default function SentenceCoursesPage() {
 
     const fetchCoursesAndProgress = async () => {
       try {
-        const coursesSnapshot = await getDocs(collection(db, 'courses'));
+        const coursesSnapshot = await getDocs(collection(db, 'word_courses'));
         const courseData: Course[] = coursesSnapshot.docs.map((doc) => ({
           id: doc.id,
           ...doc.data(),
@@ -182,7 +182,7 @@ export default function SentenceCoursesPage() {
         router.push('/login');
         return;
     } */
-    router.push(`/courses/sentence/${courseId}`);
+    router.push(`/courses/word/${courseId}`);
     if (!user) return;
     const progressRef = doc(db, 'user_progress', user.uid, 'enrolled_courses', courseId);
 

@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { collection, doc, getDoc, getDocs, orderBy, query, limit, updateDoc } from "firebase/firestore";
 import { useAuth } from "@/hooks/useAuth";
@@ -11,6 +12,7 @@ export interface EnrolledCourse {
     description: string;
     progress: number;
     isCompleted: boolean;
+    category: string;
 }
 
 export interface ProgressOverview {
@@ -79,7 +81,11 @@ export const useProgress = () => {
                         const courseId = progressDoc.id;
                         const progressData = progressDoc.data();
 
-                        const courseDoc = await getDoc(doc(db, "courses", courseId));
+                        let courseDoc = await getDoc(doc(db, "courses", courseId));
+                        if (!courseDoc.exists()) {
+                            courseDoc = await getDoc(doc(db, "word_courses", courseId));
+                        }
+
                         if (courseDoc.exists()) {
                             const courseData = courseDoc.data();
                             totalCompleted += progressData.completedLessons?.length || 0;
@@ -91,6 +97,7 @@ export const useProgress = () => {
                                 description: courseData.description,
                                 progress: progressData.progress || 0,
                                 isCompleted: progressData.isCompleted || false,
+                                category: courseData.category,
                             };
                         }
                         return null;

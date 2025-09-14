@@ -1,3 +1,4 @@
+
 import { EnrolledCourse } from "@/hooks/useProgress";
 import Link from "next/link";
 import { IconType } from "react-icons";
@@ -23,28 +24,31 @@ export default function RecentCourses({ enrolledCourses, FiAward }: { enrolledCo
                 </div>
             ) : (
                 <ul className="space-y-4">
-                    {enrolledCourses.map(course => (
-                        <li key={course.id} className="p-4 rounded-lg border border-gray-200 hover:shadow-md transition-shadow">
-                            <div className="flex justify-between items-center mb-2">
-                                <h3 className="font-semibold text-gray-800">{course.title}</h3>
-                                {course.isCompleted && (
-                                    <span className="flex items-center gap-1 text-xs bg-yellow-400 text-white font-bold px-2 py-1 rounded-md">
-                                        <FiAward /> Completed
-                                    </span>
-                                )}
-                            </div>
-                            <div className="flex justify-between text-sm text-gray-600 mb-2">
-                                <span>Progress</span>
-                                <span>{course.progress}%</span>
-                            </div>
-                            <div className="w-full bg-gray-200 rounded-full h-2 mb-4">
-                                <div className={`${course.isCompleted ? 'bg-yellow-400' : 'bg-blue-600'} h-2 rounded-full`} style={{ width: `${course.progress}%` }}></div>
-                            </div>
-                            <Link href={`/courses/${course.id}`} className="text-blue-600 hover:underline text-sm font-medium">
-                                {course.isCompleted ? 'Review Course' : 'Continue Learning'}
-                            </Link>
-                        </li>
-                    ))}
+                    {enrolledCourses.map(course => {
+                        const courseUrl = course.category === 'Words' ? `/courses/word/${course.id}` : `/courses/sentence/${course.id}`;
+                        return (
+                            <li key={course.id} className="p-4 rounded-lg border border-gray-200 hover:shadow-md transition-shadow">
+                                <div className="flex justify-between items-center mb-2">
+                                    <h3 className="font-semibold text-gray-800">{course.title}</h3>
+                                    {course.isCompleted && (
+                                        <span className="flex items-center gap-1 text-xs bg-yellow-400 text-white font-bold px-2 py-1 rounded-md">
+                                            <FiAward /> Completed
+                                        </span>
+                                    )}
+                                </div>
+                                <div className="flex justify-between text-sm text-gray-600 mb-2">
+                                    <span>Progress</span>
+                                    <span>{course.progress}%</span>
+                                </div>
+                                <div className="w-full bg-gray-200 rounded-full h-2 mb-4">
+                                    <div className={`${course.isCompleted ? 'bg-yellow-400' : 'bg-blue-600'} h-2 rounded-full`} style={{ width: `${course.progress}%` }}></div>
+                                </div>
+                                <Link href={courseUrl} className="text-blue-600 hover:underline text-sm font-medium">
+                                    {course.isCompleted ? 'Review Course' : 'Continue Learning'}
+                                </Link>
+                            </li>
+                        )
+                    })}
                 </ul>
             )}
         </>

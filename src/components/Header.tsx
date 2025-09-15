@@ -3,12 +3,14 @@
 import Link from 'next/link';
 import { useState } from 'react';
 import { useAuth } from '@/hooks/useAuth';
+import { useRouter } from 'next/navigation';
 
 export default function Header() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isCoursesMenuOpen, setCoursesMenuOpen] = useState(false);
   const [isMobileCoursesMenuOpen, setMobileCoursesMenuOpen] = useState(false);
   const { user, userProfile, logout } = useAuth();
+  const router = useRouter();
 
   const handleLogout = async () => {
     await logout();
@@ -33,7 +35,7 @@ export default function Header() {
               onMouseEnter={() => setCoursesMenuOpen(true)}
               onMouseLeave={() => setCoursesMenuOpen(false)}
             >
-              <button className="text-gray-700 hover:text-blue-600 px-3 py-2 rounded-md text-sm font-medium flex items-center">
+              <button onClick={() => router.replace('/courses')} className="text-gray-700 hover:text-blue-600 px-3 py-2 rounded-md text-sm font-medium flex items-center">
                 Courses
                 <svg className={`w-4 h-4 ml-1 transform transition-transform ${isCoursesMenuOpen && 'rotate-180'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
